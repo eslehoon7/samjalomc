@@ -1,0 +1,6 @@
+{
+  "name": "삼잘한의원",
+  "description": "전통적인 신뢰와 세련된 동양미가 조화된 삼잘한의원(Samjal Oriental Clinic)의 공식 홈페이지입니다. 수면, 식이, 배변의 3대 건강 지표 '삼잘' 자가진단 및 노원점, 구리점 정보와 명품 한방 치료를 확인해 보세요.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -484,7 +484,7 @@ export default function SubReservation() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-serif text-[#C5A059] font-bold mb-1">배변 (잘싸기) *</label>
+                  <label className="block text-[11px] font-serif text-[#C5A059] font-bold mb-1">배변 (잘보내기) *</label>
                   <select
                     value={diagForm.poop}
                     onChange={(e) => setDiagForm({ ...diagForm, poop: e.target.value })}

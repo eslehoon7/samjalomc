@@ -770,19 +770,16 @@ export default function SubLocation() {
                     </div>
                   </div>
                   
-                  {/* 설명 구역 */}
-                  <div className="p-5 text-left border-t border-slate-50 flex-1 flex flex-col justify-between">
+                  {/* 설명 구역 (제목만 나오게 디자인 변경) */}
+                  <div className="p-4 sm:p-5 text-left border-t border-slate-50 flex flex-col justify-between">
                     <div>
-                      <h4 className="text-base sm:text-lg font-sans font-extrabold text-slate-800 tracking-tight group-hover:text-[#0F2C59] transition-colors mb-2">
+                      <h4 className="text-sm sm:text-base font-sans font-extrabold text-slate-800 tracking-tight group-hover:text-[#0F2C59] transition-colors">
                         {item.title}
                       </h4>
-                      <p className="text-xs sm:text-sm font-sans text-slate-500 leading-relaxed font-light break-keep">
-                        {item.desc}
-                      </p>
                     </div>
                     
                     {/* 하단 화살표 힌트 */}
-                    <div className="flex items-center gap-1.5 pt-3 text-[11px] sm:text-xs font-sans text-[#0F2C59] font-bold mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1.5 pt-2 text-[10px] sm:text-xs font-sans text-[#0F2C59] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
                       <span>자세히 보기 (확대)</span>
                     </div>
                   </div>

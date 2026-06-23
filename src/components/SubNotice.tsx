@@ -149,9 +149,6 @@ export default function SubNotice() {
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-sans text-white font-extrabold tracking-tight">
             알림마당 / 공지사항
           </h1>
-          <p className="text-slate-300 font-sans text-sm sm:text-base max-w-lg mx-auto tracking-wide leading-relaxed font-light">
-            삼잘한의원의 진료 일정 변경, 하절기 휴진 및 건강 동향<br />한방 칼럼 소식입니다.
-          </p>
         </div>
       </div>
 

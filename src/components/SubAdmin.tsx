@@ -39,6 +39,52 @@ export default function SubAdmin() {
   const [profileUploadingId, setProfileUploadingId] = useState<string | null>(null);
   const [profileErrorMap, setProfileErrorMap] = useState<Record<string, string>>({});
 
+  interface ProfileInfo {
+    id: string;
+    name: string;
+    role: string;
+    desc: string;
+    tag: string;
+  }
+
+  const DEFAULT_PROFILES: Record<string, ProfileInfo> = {
+    kim_yujung: {
+      id: "kim_yujung",
+      name: "김유정 박사",
+      role: "삼잘에센셜 처방 천연물 제형 과학 자문위원",
+      desc: "약재 성분 추출 최적화와 제형 연구를 통해 처방의 생체 이용률을 높이는 천연물 과학 전문가",
+      tag: "의뢰 파트너"
+    },
+    jeon_junyoung: {
+      id: "jeon_junyoung",
+      name: "전준영 원장",
+      role: "한방재활의학과 전문의",
+      desc: "경희대병원 출신의 한방재활의학 전문의로서 세심한 진료와 재활의학적 지식을 바탕으로 자생력 향상에 기여합니다.",
+      tag: "노원점 대표"
+    },
+    je_jengjin: {
+      id: "je_jengjin",
+      name: "제정진 원장",
+      role: "구리본점 대표원장",
+      desc: "패럴림픽 국가대표팀 주치의 역임. 30년 임상 경력을 기반으로 대관절 심부안정화 침법을 정밀 시술합니다.",
+      tag: "구리점 대표"
+    },
+    je_hyunyoung: {
+      id: "je_hyunyoung",
+      name: "제현영 원장",
+      role: "구리본점 진료원장",
+      desc: "침구의학 전문 자문과 꼼꼼한 약침 치료를 시행하여 환자의 빠른 쾌유와 신체 밸런스를 되찾아 드립니다.",
+      tag: "구리점 원장"
+    }
+  };
+
+  const [profilesInfoMap, setProfilesInfoMap] = useState<Record<string, ProfileInfo>>(DEFAULT_PROFILES);
+  const [editingProfileId, setEditingProfileId] = useState<string | null>(null);
+  const [editProfileName, setEditProfileName] = useState<string>("");
+  const [editProfileRole, setEditProfileRole] = useState<string>("");
+  const [editProfileDesc, setEditProfileDesc] = useState<string>("");
+  const [editProfileTag, setEditProfileTag] = useState<string>("");
+
   // Subject Images State
   const defaultSubjectImages: Record<string, string[]> = {
     spine: [
@@ -392,15 +438,75 @@ export default function SubAdmin() {
         je_jengjin: "/images/samjal_crew_professional_1780495405627.png",
         je_hyunyoung: "/images/samjal_characters_expert_1780495449389.jpg"
       };
+      const updatedInfoMap = { ...DEFAULT_PROFILES };
+
       snap.forEach(d => {
         const val = d.data();
-        if (d.id && val.image) {
-          updatedMap[d.id as keyof typeof updatedMap] = val.image;
+        if (d.id) {
+          if (val.image) {
+            updatedMap[d.id as keyof typeof updatedMap] = val.image;
+          }
+          let descVal = val.desc || val.detail || "";
+          // If Firestore descVal is completely empty but we have design default, fall back to default
+          updatedInfoMap[d.id] = {
+            id: d.id,
+            name: val.name || DEFAULT_PROFILES[d.id]?.name || "",
+            role: val.role || DEFAULT_PROFILES[d.id]?.role || "",
+            desc: descVal || DEFAULT_PROFILES[d.id]?.desc || "",
+            tag: val.tag || DEFAULT_PROFILES[d.id]?.tag || ""
+          };
         }
       });
       setProfilesMap(updatedMap);
+      setProfilesInfoMap(updatedInfoMap);
     } catch (err) {
       console.warn("의료진 프로필 로드 실패:", err);
+    }
+  };
+
+  const handleStartEditProfile = (profileId: string) => {
+    const info = profilesInfoMap[profileId] || DEFAULT_PROFILES[profileId];
+    setEditingProfileId(profileId);
+    setEditProfileName(info.name);
+    setEditProfileRole(info.role);
+    setEditProfileDesc(info.desc);
+    setEditProfileTag(info.tag);
+  };
+
+  const handleSaveProfileInfo = async (profileId: string) => {
+    try {
+      setProfileUploadingId(profileId);
+      setProfileErrorMap(prev => ({ ...prev, [profileId]: "" }));
+
+      // Document save in Firestore
+      await setDoc(doc(db, "profile_images", profileId), {
+        id: profileId,
+        name: editProfileName,
+        role: editProfileRole,
+        desc: editProfileDesc,
+        tag: editProfileTag,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      // Synchronize in local states
+      setProfilesInfoMap(prev => ({
+        ...prev,
+        [profileId]: {
+          id: profileId,
+          name: editProfileName,
+          role: editProfileRole,
+          desc: editProfileDesc,
+          tag: editProfileTag
+        }
+      }));
+
+      showToast("의료진의 정보가 성공적으로 반영되었습니다.", "success");
+      setEditingProfileId(null);
+    } catch (err: any) {
+      console.error("Profile info save error:", err);
+      setProfileErrorMap(prev => ({ ...prev, [profileId]: `저장 중 에러 발생: ${err.message || err}` }));
+    } finally {
+      setProfileUploadingId(null);
     }
   };
 
@@ -471,6 +577,36 @@ export default function SubAdmin() {
       setProfileUploadingId(null);
     }
   };
+
+  const handleDeleteProfilePhoto = async (profileId: string) => {
+    if (!window.confirm("정말 이 프로필 사진을 삭제하시겠습니까? 기본 사진으로 리셋됩니다.")) return;
+    try {
+      setProfileUploadingId(profileId);
+      setProfileErrorMap(prev => ({ ...prev, [profileId]: "" }));
+      
+      const defaultVal = {
+        kim_yujung: "/images/researcher_portrait_1780500341416.png",
+        jeon_junyoung: "/images/samjal_crew_professional_1780495405627.png",
+        je_jengjin: "/images/samjal_crew_professional_1780495405627.png",
+        je_hyunyoung: "/images/samjal_characters_expert_1780495449389.jpg"
+      }[profileId] || "";
+
+      await setDoc(doc(db, "profile_images", profileId), {
+        id: profileId,
+        image: defaultVal,
+        storagePath: "",
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      setProfilesMap(prev => ({ ...prev, [profileId]: defaultVal }));
+      showToast("프로필 사진이 기본값으로 리셋되었습니다.", "success");
+    } catch (err: any) {
+      console.error("Delete profile photo error:", err);
+      setProfileErrorMap(prev => ({ ...prev, [profileId]: `삭제 오류: ${err.message || err}` }));
+    } finally {
+      setProfileUploadingId(null);
+    }
+  };
   
   // States
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -507,11 +643,16 @@ export default function SubAdmin() {
   const [activityUploading, setActivityUploading] = useState(false);
 
   // Photos Edit Form
+  const [photoToDelete, setPhotoToDelete] = useState<{ id: string; storagePath: string } | null>(null);
+  const [noticeToDelete, setNoticeToDelete] = useState<number | null>(null);
+  const [diagnosisToDelete, setDiagnosisToDelete] = useState<string | null>(null);
   const [editingPhoto, setEditingPhoto] = useState<any | null>(null);
   const [photoEditTitle, setPhotoEditTitle] = useState("");
   const [photoEditDesc, setPhotoEditDesc] = useState("");
   const [photoEditBranch, setPhotoEditBranch] = useState("both");
   const [photoEditTagLabel, setPhotoEditTagLabel] = useState("");
+  const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null);
+  const [editPhotoPreview, setEditPhotoPreview] = useState("");
 
   // Photos Add Form — Firebase Storage 기반으로 변경
   const [isAddPhotoOpen, setIsAddPhotoOpen] = useState(false);
@@ -888,8 +1029,11 @@ export default function SubAdmin() {
     setNewNotice({ title: "", content: "", isPinned: false });
   };
 
-  const handleDeleteNotice = async (id: number) => {
-    if (!confirm("공지 전재를 영구 삭제하시겠습니까?")) return;
+  const handleDeleteNotice = (id: number) => {
+    setNoticeToDelete(id);
+  };
+
+  const executeDeleteNotice = async (id: number) => {
     try {
       try {
         // Try direct delete by ID first (fast path)
@@ -907,9 +1051,15 @@ export default function SubAdmin() {
       const resp = await fetch(`/api/notices/${id}`, { method: "DELETE" });
       if (resp.ok) {
         setNotices(prev => prev.filter(n => Number(n.id) !== id));
+        setToastMsg("공지사항 게시글이 정상적으로 영구 삭제되었습니다.");
+        setToastType("success");
+        setTimeout(() => setToastMsg(""), 3000);
       }
     } catch (e) {
       console.error(e);
+      setToastMsg("공지사항 삭제에 실패했습니다.");
+      setToastType("error");
+      setTimeout(() => setToastMsg(""), 3000);
     }
   };
 
@@ -1033,8 +1183,8 @@ export default function SubAdmin() {
       setPhotoAddError("업로드할 원내 사진을 선택해 주십시오.");
       return;
     }
-    if (!newPhotoTitle || !newPhotoDesc) {
-      setPhotoAddError("제목과 설명을 모두 채워주십시오.");
+    if (!newPhotoTitle) {
+      setPhotoAddError("제목을 채워주십시오.");
       return;
     }
 
@@ -1128,14 +1278,17 @@ export default function SubAdmin() {
   };
 
   // 사진 삭제 — Storage + Firestore 동시 삭제
-  const handleDeletePhoto = async (firestoreId: string, storagePath: string) => {
-    if (!confirm("이 원내 갤러리 사진을 영구 삭제하시겠습니까?")) return;
+  const handleDeletePhoto = (firestoreId: string, storagePath: string) => {
+    setPhotoToDelete({ id: firestoreId, storagePath });
+  };
+
+  const executeDeletePhoto = async (firestoreId: string, storagePath: string) => {
     try {
       // 1. Firestore 문서 삭제
       await deleteDoc(doc(db, "galleryPhotos", firestoreId));
 
       // 2. Storage 파일 삭제 (storagePath가 있는 경우)
-      if (storagePath) {
+      if (storagePath && storagePath !== "inline-fallback-base64") {
         try {
           const fileRef = ref(storage, storagePath);
           await deleteObject(fileRef);
@@ -1146,9 +1299,14 @@ export default function SubAdmin() {
 
       // 3. 로컬 state 업데이트
       setPhotos(prev => prev.filter((p: any) => p.firestoreId !== firestoreId));
+      setToastMsg("원내 전경 사진이 영구 삭제되었습니다.");
+      setToastType("success");
+      setTimeout(() => setToastMsg(""), 3000);
     } catch (err) {
       console.error("사진 삭제 실패:", err);
-      alert("사진 삭제에 실패했습니다.");
+      setToastMsg("사진 삭제에 실패했습니다.");
+      setToastType("error");
+      setTimeout(() => setToastMsg(""), 3000);
     }
   };
 
@@ -1323,27 +1481,80 @@ export default function SubAdmin() {
     setPhotoEditDesc(photo.desc);
     setPhotoEditBranch(photo.branch || "both");
     setPhotoEditTagLabel(photo.tagLabel || "원내 인증 전경");
+    setEditPhotoFile(null);
+    setEditPhotoPreview("");
   };
 
   const handleSavePhotoDetails = async (e: FormEvent) => {
     e.preventDefault();
     if (!editingPhoto) return;
+    setPhotoUploading(true);
     try {
+      let imageUrl = editingPhoto.image;
+      let storagePath = editingPhoto.storagePath || "";
+
+      if (editPhotoFile) {
+        // 1. 선택한 임시 파일을 1000px급 초경량 JPEG으로 실시간 압축
+        const compressedBase64 = await compressImageFile(editPhotoFile, 1000, 1000, 0.8);
+        try {
+          // 2. 서버 측 API를 활용해 Firebase Storage 업로드 우선 시도
+          const uploadResp = await fetchWithTimeout("/api/photos/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fileData: compressedBase64,
+              fileName: editPhotoFile.name
+            }),
+            timeout: 8000 // 8초 타임아웃 제한
+          });
+
+          if (uploadResp.ok) {
+            const uploadResult = await uploadResp.json();
+            imageUrl = uploadResult.imageUrl;
+            storagePath = uploadResult.storagePath;
+          } else {
+            throw new Error("Server storage upload route returned non-200 status");
+          }
+        } catch (srvErr) {
+          console.warn("서버 파이프라인 업로드 실패, 브라우저 직접 업로드 폴백 진입:", srvErr);
+          try {
+            // 3. 브라우저 직접 Firebase Storage 업로드 시도 (폴백 장치, 타임아웃 4초 적용)
+            const fileName = `${Date.now()}_${editPhotoFile.name}`;
+            const storageRef = ref(storage, `site-images/gallery/${fileName}`);
+            const compressedBlob = base64ToBlob(compressedBase64);
+            imageUrl = await clientUploadWithTimeout(storageRef, compressedBlob, 4000);
+            storagePath = `site-images/gallery/${fileName}`;
+          } catch (clientErr) {
+            console.warn("클라이언트 스토리지 업로드도 차단됨. 최종 수단인 인라인 Base64 기입으로 강제 전환합니다:", clientErr);
+            imageUrl = compressedBase64;
+            storagePath = "inline-fallback-base64";
+          }
+        }
+      }
+
       await updateDoc(doc(db, "galleryPhotos", editingPhoto.firestoreId), {
         title: photoEditTitle,
         desc: photoEditDesc,
         tagLabel: photoEditTagLabel,
         branch: photoEditBranch,
+        image: imageUrl,
+        storagePath: storagePath,
       });
+
       setPhotos(prev => prev.map((p: any) =>
         p.firestoreId === editingPhoto.firestoreId
-          ? { ...p, title: photoEditTitle, desc: photoEditDesc, tagLabel: photoEditTagLabel, branch: photoEditBranch }
+          ? { ...p, title: photoEditTitle, desc: photoEditDesc, tagLabel: photoEditTagLabel, branch: photoEditBranch, image: imageUrl, storagePath: storagePath }
           : p
       ));
+
       setEditingPhoto(null);
+      setEditPhotoFile(null);
+      setEditPhotoPreview("");
     } catch (err) {
       console.error("사진 정보 수정 실패:", err);
       alert("수정에 실패했습니다.");
+    } finally {
+      setPhotoUploading(false);
     }
   };
 
@@ -1351,8 +1562,11 @@ export default function SubAdmin() {
   // 자가진단 관련 (기존과 동일)
   // ──────────────────────────────────────────────
 
-  const handleDeleteDiagnose = async (id: string) => {
-    if (!confirm("해당 AI 자가진단 기록을 관리 전산망에서 영구 삭제하시겠습니까?")) return;
+  const handleDeleteDiagnose = (id: string) => {
+    setDiagnosisToDelete(id);
+  };
+
+  const executeDeleteDiagnose = async (id: string) => {
     try {
       try {
         // Try direct delete by ID first (fast path)
@@ -1370,9 +1584,15 @@ export default function SubAdmin() {
       const resp = await fetch(`/api/diagnoses/${id}`, { method: "DELETE" });
       if (resp.ok) {
         setDiagnoses(prev => prev.filter(d => d.id !== id));
+        setToastMsg("자가진단 기록이 안전하게 완전 삭제되었습니다.");
+        setToastType("success");
+        setTimeout(() => setToastMsg(""), 3000);
       }
     } catch (e) {
       console.error(e);
+      setToastMsg("자가진단 삭제에 실패했습니다.");
+      setToastType("error");
+      setTimeout(() => setToastMsg(""), 3000);
     }
   };
 
@@ -1579,9 +1799,6 @@ export default function SubAdmin() {
           </button>
           <button onClick={() => setActiveSubTab("photos")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all shrink-0 cursor-pointer flex items-center gap-2 ${activeSubTab === "photos" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
             <Image className="w-4 h-4" /><span>인테리어 롤링 관리 ({photos.length})</span>
-          </button>
-          <button onClick={() => setActiveSubTab("diagnoses")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all shrink-0 cursor-pointer flex items-center gap-2 ${activeSubTab === "diagnoses" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
-            <Activity className="w-4 h-4" /><span>자가진단 기록 ({diagnoses.length})</span>
           </button>
           <button onClick={() => setActiveSubTab("profiles")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all shrink-0 cursor-pointer flex items-center gap-2 ${activeSubTab === "profiles" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
             <User className="w-4 h-4" /><span>의료진 프로필 관리 (4)</span>
@@ -2115,7 +2332,7 @@ export default function SubAdmin() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6 mt-3 text-left">
                               <div className="p-3 bg-red-50/30 border border-slate-100 rounded-xl"><div className="flex items-center gap-1 mb-1"><span className="w-1.5 h-1.5 rounded-full bg-red-400" /><span className="text-[10.5px] font-sans text-red-600 font-extrabold uppercase tracking-wide">잘자기 (수면 상태)</span></div><p className="text-xs font-serif text-[#5C6351] leading-relaxed pl-2.5">{item.sleep || "미기재"}</p></div>
                               <div className="p-3 bg-emerald-50/30 border border-slate-100 rounded-xl"><div className="flex items-center gap-1 mb-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /><span className="text-[10.5px] font-sans text-emerald-600 font-extrabold uppercase tracking-wide">잘먹기 (식사 상태)</span></div><p className="text-xs font-serif text-[#5C6351] leading-relaxed pl-2.5">{item.eat || "미기재"}</p></div>
-                              <div className="p-3 bg-sky-50/30 border border-slate-100 rounded-xl"><div className="flex items-center gap-1 mb-1"><span className="w-1.5 h-1.5 rounded-full bg-sky-400" /><span className="text-[10.5px] font-sans text-sky-600 font-extrabold uppercase tracking-wide">잘싸기 (배변 상태)</span></div><p className="text-xs font-serif text-[#5C6351] leading-relaxed pl-2.5">{item.poop || "미기재"}</p></div>
+                              <div className="p-3 bg-sky-50/30 border border-slate-100 rounded-xl"><div className="flex items-center gap-1 mb-1"><span className="w-1.5 h-1.5 rounded-full bg-sky-400" /><span className="text-[10.5px] font-sans text-sky-600 font-extrabold uppercase tracking-wide">잘보내기 (배변 상태)</span></div><p className="text-xs font-serif text-[#5C6351] leading-relaxed pl-2.5">{item.poop || "미기재"}</p></div>
                             </div>
                             <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/40 text-left mb-6"><span className="text-[10px] font-extrabold font-sans text-slate-400 block mb-1">환우가 직접 기재한 진술 증상</span><p className="text-xs font-serif text-[#2A2826] leading-relaxed font-light pl-1 italic">"{item.symptoms || "특별한 불편사항 없음"}"</p></div>
                             <div className="relative p-5 sm:p-6 bg-[#FAF9F5] border border-[#DFD5C6]/60 rounded-xl text-left shadow-inner"><div className="prose max-w-none space-y-1">{renderParsedMarkdown(item.analysis)}</div></div>
@@ -2168,28 +2385,65 @@ export default function SubAdmin() {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <span className="px-2.5 py-1 bg-[#0F2C59]/10 text-[#0F2C59] font-sans text-[11px] font-bold rounded-lg">의뢰 파트너</span>
-                    <span className="text-[10px] font-mono text-slate-400">ID: kim_yujung</span>
-                  </div>
-                  <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-1.5 font-sans">
-                    김유정 박사
-                    <span className="text-xs text-slate-400 font-medium">팜힐 천연물 제형 연구소</span>
-                  </h4>
-                  <p className="text-xs text-slate-500 mt-1 mb-4">삼잘한의원 소개 - Research & Clinical Partners 프로필 사진 수정</p>
-                  
-                  <div className="flex items-center gap-5 mt-4">
-                    <div className="w-24 h-28 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm">
-                      <img src={profilesMap.kim_yujung} alt="김유정 박사" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    </div>
-                    <div className="space-y-2 flex-1">
-                      <label className="inline-block px-3 py-1.5 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm">
-                        사진 변경하기
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleProfilePhotoChange("kim_yujung", e)} />
-                      </label>
-                      {profileUploadingId === "kim_yujung" && <p className="text-[11px] text-[#0F2C59] font-bold animate-pulse">업로드 진행중...</p>}
-                      {profileErrorMap.kim_yujung && <p className="text-[11px] text-red-500 font-bold">{profileErrorMap.kim_yujung}</p>}
-                      <p className="text-[10px] text-slate-400">권장 비율: 4:5 ~ 1:1, 정면 상반신 프로필 사진</p>
+                    <div className="flex items-center gap-1.5 shrink-0 self-center">
+                      <button onClick={() => handleStartEditProfile("kim_yujung")} className="px-2 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200/50 text-amber-700 rounded-lg text-[10px] font-sans font-bold cursor-pointer transition-all flex items-center gap-1 shadow-xs" title="프로필 수정">
+                        <Pencil className="w-2.5 h-2.5" /><span>편집</span>
+                      </button>
+                      <button onClick={() => handleDeleteProfilePhoto("kim_yujung")} className="px-2 py-1 bg-rose-50 hover:bg-rose-100 border border-rose-200/50 text-rose-600 rounded-lg text-[10px] font-sans font-bold cursor-pointer transition-all flex items-center gap-1 shadow-xs" title="프로필 삭제">
+                        <Trash2 className="w-2.5 h-2.5" /><span>삭제</span>
+                      </button>
                     </div>
                   </div>
+
+                  {editingProfileId === "kim_yujung" ? (
+                    <div className="space-y-4 mt-1 bg-white p-4 rounded-xl border border-slate-200/65 font-sans shadow-xs">
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">의료진 이름 *</label>
+                        <input type="text" value={editProfileName} onChange={(e) => setEditProfileName(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">담당업무 *</label>
+                        <input type="text" value={editProfileRole} onChange={(e) => setEditProfileRole(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">상세내용 *</label>
+                        <textarea value={editProfileDesc} onChange={(e) => setEditProfileDesc(e.target.value)} rows={3} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white resize-none leading-relaxed font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">태그 *</label>
+                        <input type="text" value={editProfileTag} onChange={(e) => setEditProfileTag(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                      </div>
+                      <div className="flex gap-2 pt-2 border-t border-slate-100 font-sans">
+                        <button type="button" onClick={() => handleSaveProfileInfo("kim_yujung")} className="flex-1 py-1.5 bg-[#0F2C59] text-white hover:bg-slate-800 rounded-lg text-xs font-bold whitespace-nowrap cursor-pointer transition-all">저장 완료</button>
+                        <button type="button" onClick={() => setEditingProfileId(null)} className="py-1.5 px-3 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-lg text-xs font-bold cursor-pointer transition-all">취소</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-1.5 font-sans">
+                        {profilesInfoMap.kim_yujung?.name || DEFAULT_PROFILES.kim_yujung.name}
+                        <span className="text-xs text-slate-400 font-medium font-sans">{profilesInfoMap.kim_yujung?.role || DEFAULT_PROFILES.kim_yujung.role}</span>
+                      </h4>
+                      <p className="text-xs text-slate-500 mt-2.5 mb-4 leading-relaxed font-sans">{profilesInfoMap.kim_yujung?.desc || DEFAULT_PROFILES.kim_yujung.desc}</p>
+                      
+                      <div className="flex items-center gap-5 mt-4 pt-4 border-t border-slate-100">
+                        <div className="w-20 h-24 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm relative group">
+                          <img src={profilesMap.kim_yujung} alt="김유정 박사" className="w-full h-full object-cover font-sans" referrerPolicy="no-referrer" />
+                          <label className="absolute inset-0 bg-black/40 text-white text-[9px] font-sans font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-all">
+                            사진 수정
+                            <input id="profile-input-kim_yujung" type="file" accept="image/*" className="hidden" onChange={(e) => handleProfilePhotoChange("kim_yujung", e)} />
+                          </label>
+                        </div>
+                        <div className="space-y-1 flex-1 font-sans">
+                          <button onClick={() => document.getElementById("profile-input-kim_yujung")?.click()} className="px-2.5 py-1 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-[10.5px] font-sans font-bold cursor-pointer transition-all shadow-xs">
+                            사진 교체
+                          </button>
+                          {profileUploadingId === "kim_yujung" && <p className="text-[11px] text-[#0F2C59] font-bold animate-pulse font-sans">업로드 진행중...</p>}
+                          {profileErrorMap.kim_yujung && <p className="text-[11px] text-red-500 font-bold font-sans">{profileErrorMap.kim_yujung}</p>}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -2198,28 +2452,65 @@ export default function SubAdmin() {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <span className="px-2.5 py-1 bg-amber-600/10 text-amber-700 font-sans text-[11px] font-bold rounded-lg">노원점 대표</span>
-                    <span className="text-[10px] font-mono text-slate-400">ID: jeon_junyoung</span>
-                  </div>
-                  <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-1.5 font-sans">
-                    전준영 원장
-                    <span className="text-xs text-slate-400 font-medium font-sans">한방재활의학과 전문의</span>
-                  </h4>
-                  <p className="text-xs text-slate-500 mt-1 mb-4">지점소개 - 노원점 대표원장 프로필 사진 수정</p>
-                  
-                  <div className="flex items-center gap-5 mt-4">
-                    <div className="w-24 h-28 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm">
-                      <img src={profilesMap.jeon_junyoung} alt="전준영 원장" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    </div>
-                    <div className="space-y-2 flex-1">
-                      <label className="inline-block px-3 py-1.5 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm font-sans">
-                        사진 변경하기
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleProfilePhotoChange("jeon_junyoung", e)} />
-                      </label>
-                      {profileUploadingId === "jeon_junyoung" && <p className="text-[11px] text-[#0F2C59] font-bold animate-pulse">업로드 진행중...</p>}
-                      {profileErrorMap.jeon_junyoung && <p className="text-[11px] text-red-500 font-bold">{profileErrorMap.jeon_junyoung}</p>}
-                      <p className="text-[10px] text-slate-400">권장 비율: 4:5 ~ 1:1, 정면 상반신 프로필 사진</p>
+                    <div className="flex items-center gap-1.5 shrink-0 self-center">
+                      <button onClick={() => handleStartEditProfile("jeon_junyoung")} className="px-2 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200/50 text-amber-700 rounded-lg text-[10px] font-sans font-bold cursor-pointer transition-all flex items-center gap-1 shadow-xs" title="프로필 수정">
+                        <Pencil className="w-2.5 h-2.5" /><span>편집</span>
+                      </button>
+                      <button onClick={() => handleDeleteProfilePhoto("jeon_junyoung")} className="px-2 py-1 bg-rose-50 hover:bg-rose-100 border border-rose-200/50 text-rose-600 rounded-lg text-[10px] font-sans font-bold cursor-pointer transition-all flex items-center gap-1 shadow-xs" title="프로필 삭제">
+                        <Trash2 className="w-2.5 h-2.5" /><span>삭제</span>
+                      </button>
                     </div>
                   </div>
+
+                  {editingProfileId === "jeon_junyoung" ? (
+                    <div className="space-y-4 mt-1 bg-white p-4 rounded-xl border border-slate-200/65 font-sans shadow-xs">
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans font-sans">의료진 이름 *</label>
+                        <input type="text" value={editProfileName} onChange={(e) => setEditProfileName(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans font-sans">담당업무 *</label>
+                        <input type="text" value={editProfileRole} onChange={(e) => setEditProfileRole(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans font-sans">상세내용 *</label>
+                        <textarea value={editProfileDesc} onChange={(e) => setEditProfileDesc(e.target.value)} rows={3} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white resize-none leading-relaxed font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans font-sans">태그 *</label>
+                        <input type="text" value={editProfileTag} onChange={(e) => setEditProfileTag(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                      </div>
+                      <div className="flex gap-2 pt-2 border-t border-slate-100 font-sans">
+                        <button type="button" onClick={() => handleSaveProfileInfo("jeon_junyoung")} className="flex-1 py-1.5 bg-[#0F2C59] text-white hover:bg-slate-800 rounded-lg text-xs font-bold whitespace-nowrap cursor-pointer transition-all">저장 완료</button>
+                        <button type="button" onClick={() => setEditingProfileId(null)} className="py-1.5 px-3 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-lg text-xs font-bold cursor-pointer transition-all">취소</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-1.5 font-sans">
+                        {profilesInfoMap.jeon_junyoung?.name || DEFAULT_PROFILES.jeon_junyoung.name}
+                        <span className="text-xs text-slate-400 font-medium font-sans">{profilesInfoMap.jeon_junyoung?.role || DEFAULT_PROFILES.jeon_junyoung.role}</span>
+                      </h4>
+                      <p className="text-xs text-slate-500 mt-2.5 mb-4 leading-relaxed font-sans">{profilesInfoMap.jeon_junyoung?.desc || DEFAULT_PROFILES.jeon_junyoung.desc}</p>
+                      
+                      <div className="flex items-center gap-5 mt-4 pt-4 border-t border-slate-100">
+                        <div className="w-20 h-24 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm relative group">
+                          <img src={profilesMap.jeon_junyoung} alt="전준영 원장" className="w-full h-full object-cover font-sans" referrerPolicy="no-referrer" />
+                          <label className="absolute inset-0 bg-black/40 text-white text-[9px] font-sans font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-all">
+                            사진 수정
+                            <input id="profile-input-jeon_junyoung" type="file" accept="image/*" className="hidden" onChange={(e) => handleProfilePhotoChange("jeon_junyoung", e)} />
+                          </label>
+                        </div>
+                        <div className="space-y-1 flex-1 font-sans">
+                          <button onClick={() => document.getElementById("profile-input-jeon_junyoung")?.click()} className="px-2.5 py-1 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-[10.5px] font-sans font-bold cursor-pointer transition-all shadow-xs">
+                            사진 교체
+                          </button>
+                          {profileUploadingId === "jeon_junyoung" && <p className="text-[11px] text-[#0F2C59] font-bold animate-pulse font-sans">업로드 진행중...</p>}
+                          {profileErrorMap.jeon_junyoung && <p className="text-[11px] text-red-500 font-bold font-sans">{profileErrorMap.jeon_junyoung}</p>}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -2228,28 +2519,65 @@ export default function SubAdmin() {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <span className="px-2.5 py-1 bg-amber-600/10 text-amber-700 font-sans text-[11px] font-bold rounded-lg">구리점 대표</span>
-                    <span className="text-[10px] font-mono text-slate-400">ID: je_jengjin</span>
-                  </div>
-                  <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-1.5 font-sans">
-                    제정진 원장
-                    <span className="text-xs text-slate-400 font-medium">구리본점 대표원장</span>
-                  </h4>
-                  <p className="text-xs text-slate-500 mt-1 mb-4">지점소개 - 구리본점 대표원장 프로필 사진 수정</p>
-                  
-                  <div className="flex items-center gap-5 mt-4">
-                    <div className="w-24 h-28 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm">
-                      <img src={profilesMap.je_jengjin} alt="제정진 원장" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    </div>
-                    <div className="space-y-2 flex-1">
-                      <label className="inline-block px-3 py-1.5 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm font-sans">
-                        사진 변경하기
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleProfilePhotoChange("je_jengjin", e)} />
-                      </label>
-                      {profileUploadingId === "je_jengjin" && <p className="text-[11px] text-[#0F2C59] font-bold animate-pulse">업로드 진행중...</p>}
-                      {profileErrorMap.je_jengjin && <p className="text-[11px] text-red-500 font-bold">{profileErrorMap.je_jengjin}</p>}
-                      <p className="text-[10px] text-slate-400">권장 비율: 4:5 ~ 1:1, 정면 상반신 프로필 사진</p>
+                    <div className="flex items-center gap-1.5 shrink-0 self-center">
+                      <button onClick={() => handleStartEditProfile("je_jengjin")} className="px-2 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200/50 text-amber-700 rounded-lg text-[10px] font-sans font-bold cursor-pointer transition-all flex items-center gap-1 shadow-xs font-sans" title="프로필 수정">
+                        <Pencil className="w-2.5 h-2.5" /><span>편집</span>
+                      </button>
+                      <button onClick={() => handleDeleteProfilePhoto("je_jengjin")} className="px-2 py-1 bg-rose-50 hover:bg-rose-100 border border-rose-200/50 text-rose-600 rounded-lg text-[10px] font-sans font-bold cursor-pointer transition-all flex items-center gap-1 shadow-xs font-sans" title="프로필 삭제">
+                        <Trash2 className="w-2.5 h-2.5" /><span>삭제</span>
+                      </button>
                     </div>
                   </div>
+
+                  {editingProfileId === "je_jengjin" ? (
+                    <div className="space-y-4 mt-1 bg-white p-4 rounded-xl border border-slate-200/65 font-sans shadow-xs">
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">의료진 이름 *</label>
+                        <input type="text" value={editProfileName} onChange={(e) => setEditProfileName(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">담당업무 *</label>
+                        <input type="text" value={editProfileRole} onChange={(e) => setEditProfileRole(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">상세내용 *</label>
+                        <textarea value={editProfileDesc} onChange={(e) => setEditProfileDesc(e.target.value)} rows={3} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white resize-none leading-relaxed font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">태그 *</label>
+                        <input type="text" value={editProfileTag} onChange={(e) => setEditProfileTag(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                      </div>
+                      <div className="flex gap-2 pt-2 border-t border-slate-100 font-sans">
+                        <button type="button" onClick={() => handleSaveProfileInfo("je_jengjin")} className="flex-1 py-1.5 bg-[#0F2C59] text-white hover:bg-slate-800 rounded-lg text-xs font-bold whitespace-nowrap cursor-pointer transition-all">저장 완료</button>
+                        <button type="button" onClick={() => setEditingProfileId(null)} className="py-1.5 px-3 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-lg text-xs font-bold cursor-pointer transition-all">취소</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-1.5 font-sans">
+                        {profilesInfoMap.je_jengjin?.name || DEFAULT_PROFILES.je_jengjin.name}
+                        <span className="text-xs text-slate-400 font-medium">{profilesInfoMap.je_jengjin?.role || DEFAULT_PROFILES.je_jengjin.role}</span>
+                      </h4>
+                      <p className="text-xs text-slate-500 mt-2.5 mb-4 leading-relaxed font-sans">{profilesInfoMap.je_jengjin?.desc || DEFAULT_PROFILES.je_jengjin.desc}</p>
+                      
+                      <div className="flex items-center gap-5 mt-4 pt-4 border-t border-slate-100">
+                        <div className="w-20 h-24 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm relative group">
+                          <img src={profilesMap.je_jengjin} alt="제정진 원장" className="w-full h-full object-cover font-sans" referrerPolicy="no-referrer" />
+                          <label className="absolute inset-0 bg-black/40 text-white text-[9px] font-sans font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-all">
+                            사진 수정
+                            <input id="profile-input-je_jengjin" type="file" accept="image/*" className="hidden" onChange={(e) => handleProfilePhotoChange("je_jengjin", e)} />
+                          </label>
+                        </div>
+                        <div className="space-y-1 flex-1 font-sans">
+                          <button onClick={() => document.getElementById("profile-input-je_jengjin")?.click()} className="px-2.5 py-1 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-[10.5px] font-sans font-bold cursor-pointer transition-all shadow-xs">
+                            사진 교체
+                          </button>
+                          {profileUploadingId === "je_jengjin" && <p className="text-[11px] text-[#0F2C59] font-bold animate-pulse font-sans">업로드 진행중...</p>}
+                          {profileErrorMap.je_jengjin && <p className="text-[11px] text-red-500 font-bold font-sans">{profileErrorMap.je_jengjin}</p>}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -2257,29 +2585,66 @@ export default function SubAdmin() {
               <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 flex flex-col justify-between hover:shadow-md transition-all">
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="px-2.5 py-1 bg-amber-600/10 text-amber-700 font-sans text-[11px] font-bold rounded-lg">구리점 원장</span>
-                    <span className="text-[10px] font-mono text-slate-400">ID: je_hyunyoung</span>
-                  </div>
-                  <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-1.5 font-sans">
-                    제현영 원장
-                    <span className="text-xs text-slate-400 font-medium font-sans">구리본점 진료원장</span>
-                  </h4>
-                  <p className="text-xs text-slate-500 mt-1 mb-4">지점소개 - 구리본점 제현영 진료원장 프로필 사진 수정</p>
-                  
-                  <div className="flex items-center gap-5 mt-4">
-                    <div className="w-24 h-28 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm">
-                      <img src={profilesMap.je_hyunyoung} alt="제현영 원장" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    </div>
-                    <div className="space-y-2 flex-1">
-                      <label className="inline-block px-3 py-1.5 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm font-sans">
-                        사진 변경하기
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleProfilePhotoChange("je_hyunyoung", e)} />
-                      </label>
-                      {profileUploadingId === "je_hyunyoung" && <p className="text-[11px] text-[#0F2C59] font-bold animate-pulse">업로드 진행중...</p>}
-                      {profileErrorMap.je_hyunyoung && <p className="text-[11px] text-red-500 font-bold">{profileErrorMap.je_hyunyoung}</p>}
-                      <p className="text-[10px] text-slate-400">권장 비율: 4:5 ~ 1:1, 정면 상반신 프로필 사진</p>
+                    <span className="px-2.5 py-1 bg-amber-600/10 text-amber-700 font-sans text-[11px] font-bold rounded-lg font-sans">구리점 원장</span>
+                    <div className="flex items-center gap-1.5 shrink-0 self-center">
+                      <button onClick={() => handleStartEditProfile("je_hyunyoung")} className="px-2 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200/50 text-amber-700 rounded-lg text-[10px] font-sans font-bold cursor-pointer transition-all flex items-center gap-1 shadow-xs font-sans" title="프로필 수정">
+                        <Pencil className="w-2.5 h-2.5" /><span>편집</span>
+                      </button>
+                      <button onClick={() => handleDeleteProfilePhoto("je_hyunyoung")} className="px-2 py-1 bg-rose-50 hover:bg-rose-100 border border-rose-200/50 text-rose-600 rounded-lg text-[10px] font-sans font-bold cursor-pointer transition-all flex items-center gap-1 shadow-xs font-sans" title="프로필 삭제">
+                        <Trash2 className="w-2.5 h-2.5" /><span>삭제</span>
+                      </button>
                     </div>
                   </div>
+
+                  {editingProfileId === "je_hyunyoung" ? (
+                    <div className="space-y-4 mt-1 bg-white p-4 rounded-xl border border-slate-200/65 font-sans shadow-xs">
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">의료진 이름 *</label>
+                        <input type="text" value={editProfileName} onChange={(e) => setEditProfileName(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">담당업무 *</label>
+                        <input type="text" value={editProfileRole} onChange={(e) => setEditProfileRole(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">상세내용 *</label>
+                        <textarea value={editProfileDesc} onChange={(e) => setEditProfileDesc(e.target.value)} rows={3} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white resize-none leading-relaxed font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">태그 *</label>
+                        <input type="text" value={editProfileTag} onChange={(e) => setEditProfileTag(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                      </div>
+                      <div className="flex gap-2 pt-2 border-t border-slate-100 font-sans">
+                        <button type="button" onClick={() => handleSaveProfileInfo("je_hyunyoung")} className="flex-1 py-1.5 bg-[#0F2C59] text-white hover:bg-slate-800 rounded-lg text-xs font-bold whitespace-nowrap cursor-pointer transition-all">저장 완료</button>
+                        <button type="button" onClick={() => setEditingProfileId(null)} className="py-1.5 px-3 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-lg text-xs font-bold cursor-pointer transition-all">취소</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-1.5 font-sans">
+                        {profilesInfoMap.je_hyunyoung?.name || DEFAULT_PROFILES.je_hyunyoung.name}
+                        <span className="text-xs text-slate-400 font-medium font-sans">{profilesInfoMap.je_hyunyoung?.role || DEFAULT_PROFILES.je_hyunyoung.role}</span>
+                      </h4>
+                      <p className="text-xs text-slate-500 mt-2.5 mb-4 leading-relaxed font-sans">{profilesInfoMap.je_hyunyoung?.desc || DEFAULT_PROFILES.je_hyunyoung.desc}</p>
+                      
+                      <div className="flex items-center gap-5 mt-4 pt-4 border-t border-slate-100">
+                        <div className="w-20 h-24 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm relative group">
+                          <img src={profilesMap.je_hyunyoung} alt="제현영 원장" className="w-full h-full object-cover font-sans" referrerPolicy="no-referrer" />
+                          <label className="absolute inset-0 bg-black/40 text-white text-[9px] font-sans font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-all">
+                            사진 수정
+                            <input id="profile-input-je_hyunyoung" type="file" accept="image/*" className="hidden" onChange={(e) => handleProfilePhotoChange("je_hyunyoung", e)} />
+                          </label>
+                        </div>
+                        <div className="space-y-1 flex-1 font-sans">
+                          <button onClick={() => document.getElementById("profile-input-je_hyunyoung")?.click()} className="px-2.5 py-1 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-[10.5px] font-sans font-bold cursor-pointer transition-all shadow-xs">
+                            사진 교체
+                          </button>
+                          {profileUploadingId === "je_hyunyoung" && <p className="text-[11px] text-[#0F2C59] font-bold animate-pulse font-sans">업로드 진행중...</p>}
+                          {profileErrorMap.je_hyunyoung && <p className="text-[11px] text-red-500 font-bold font-sans font-sans">{profileErrorMap.je_hyunyoung}</p>}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -2301,7 +2666,7 @@ export default function SubAdmin() {
             <div className="space-y-12">
               {[
                 { id: "spine", name: "통증 / 관절 / 척추질환" },
-                { id: "internal", name: "비위 및 만성 장내과질환" },
+                { id: "internal", name: "내과질환" },
                 { id: "allergy", name: "알레르기 및 면역질환" },
                 { id: "cancer", name: "한양방 통합 암관리 클리닉" },
                 { id: "detox", name: "항노화 및 생체 디톡스 해독" }
@@ -2453,8 +2818,31 @@ export default function SubAdmin() {
               <button onClick={() => setEditingPhoto(null)} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-all"><X className="w-4 h-4" /></button>
             </div>
             <form onSubmit={handleSavePhotoDetails} className="space-y-5">
-              <div className="border border-slate-100 rounded-xl overflow-hidden aspect-[16/9] bg-slate-50 mb-4">
-                <img src={editingPhoto.image} alt="Preview" className="w-full h-full object-cover" />
+              <div className="relative group border border-slate-100 rounded-xl overflow-hidden aspect-[16/9] bg-slate-50 mb-4">
+                <img src={editPhotoPreview || editingPhoto.image} alt="Preview" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-start justify-end p-2.5">
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById("edit-photo-file-input")?.click()}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0F2C59] hover:bg-slate-800 text-white font-sans font-bold text-xs rounded-lg shadow-lg cursor-pointer transition-all active:scale-95"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    <span>편집</span>
+                  </button>
+                </div>
+                <input
+                  id="edit-photo-file-input"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setEditPhotoFile(file);
+                      setEditPhotoPreview(URL.createObjectURL(file));
+                    }
+                  }}
+                />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-600 mb-1.5">노출 지점 선택 *</label>
@@ -2483,13 +2871,18 @@ export default function SubAdmin() {
                 <label className="block text-xs font-bold text-slate-600 mb-1.5">사진 제목 *</label>
                 <input type="text" required value={photoEditTitle} onChange={(e) => setPhotoEditTitle(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans" />
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1.5">사진 소개 문구 *</label>
-                <textarea rows={4} required value={photoEditDesc} onChange={(e) => setPhotoEditDesc(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans leading-relaxed resize-none" />
-              </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setEditingPhoto(null)} className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-500 font-sans text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all text-center">취소하기</button>
-                <button type="submit" className="flex-1 py-2.5 bg-[#0F2C59] hover:bg-opacity-90 active:scale-[0.98] text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md cursor-pointer text-center">변경사항 저장</button>
+                <button type="button" disabled={photoUploading} onClick={() => setEditingPhoto(null)} className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-500 font-sans text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all text-center">취소하기</button>
+                <button type="submit" disabled={photoUploading} className="flex-1 py-2.5 bg-[#0F2C59] hover:bg-opacity-90 active:scale-[0.98] text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md cursor-pointer text-center flex items-center justify-center gap-2">
+                  {photoUploading ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>저장 중...</span>
+                    </>
+                  ) : (
+                    <span>변경사항 저장</span>
+                  )}
+                </button>
               </div>
             </form>
           </div>
@@ -2549,10 +2942,6 @@ export default function SubAdmin() {
               <div>
                 <label className="block text-xs font-bold text-slate-600 mb-1.5">사진 제목 *</label>
                 <input type="text" required value={newPhotoTitle} onChange={(e) => setNewPhotoTitle(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans" placeholder="예: 아늑하고 깔끔한 1인 대기실" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1.5">사진 소개 문구 *</label>
-                <textarea rows={3} required value={newPhotoDesc} onChange={(e) => setNewPhotoDesc(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans leading-relaxed resize-none" placeholder="대기실 롤링 패널에 송출될 전경 소개글을 채워주십시오" />
               </div>
 
               {photoAddError && (
@@ -2614,6 +3003,114 @@ export default function SubAdmin() {
                 <button type="submit" disabled={editDiagLoading} className="flex-1 py-2.5 bg-[#0F2C59] hover:bg-opacity-90 active:scale-[0.98] text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md cursor-pointer text-center">{editDiagLoading ? "수정 내용 저장 중..." : "진단기록 수정 완료"}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 사진 삭제 확인 모달 */}
+      {photoToDelete && (
+        <div className="fixed inset-0 bg-slate-900/65 backdrop-blur-xs flex items-center justify-center p-4 z-[99999] animate-fadeIn">
+          <div className="w-full max-w-sm bg-white border border-[#DFD5C6]/60 rounded-2xl shadow-2xl p-6 relative text-center font-sans overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-1bg bg-rose-600 rounded-t-2xl" style={{ height: "4px" }} />
+            <div className="mx-auto w-12 h-12 rounded-full bg-rose-50/70 flex items-center justify-center text-rose-600 mb-4 animate-pulse">
+              <Trash2 className="w-5 h-5 animate-pulse" />
+            </div>
+            <h3 className="text-base sm:text-lg font-extrabold text-[#2A2826] font-sans">원내 전경 사진 영구 삭제</h3>
+            <p className="text-xs text-[#7A7571] mt-2.5 font-sans leading-relaxed">
+              해당 인테리어 사진 게시글을 행정 전산망 및 홈페이지에서 영구 삭제하시겠습니까? 삭제 후에는 되돌릴 수 없습니다.
+            </p>
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setPhotoToDelete(null)}
+                className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-500 font-sans text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all text-center"
+              >
+                취소하기
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const target = photoToDelete;
+                  setPhotoToDelete(null);
+                  await executeDeletePhoto(target.id, target.storagePath);
+                }}
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md cursor-pointer text-center"
+              >
+                삭제하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 공지 삭제 확인 모달 */}
+      {noticeToDelete !== null && (
+        <div className="fixed inset-0 bg-slate-900/65 backdrop-blur-xs flex items-center justify-center p-4 z-[99999] animate-fadeIn">
+          <div className="w-full max-w-sm bg-white border border-[#DFD5C6]/60 rounded-2xl shadow-2xl p-6 relative text-center font-sans overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-1bg bg-rose-600 rounded-t-2xl" style={{ height: "4px" }} />
+            <div className="mx-auto w-12 h-12 rounded-full bg-rose-50/70 flex items-center justify-center text-rose-600 mb-4 animate-pulse">
+              <Trash2 className="w-5 h-5" />
+            </div>
+            <h3 className="text-base sm:text-lg font-extrabold text-[#2A2826] font-sans">공지사항 영구 삭제</h3>
+            <p className="text-xs text-[#7A7571] mt-2.5 font-sans leading-relaxed">
+              선택하신 공지 게시글을 목록에서 영구 삭제하시겠습니까? 삭제된 공지사항은 즉시 복원이 불가능합니다.
+            </p>
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setNoticeToDelete(null)}
+                className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-500 font-sans text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all text-center"
+              >
+                취소하기
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const targetId = noticeToDelete;
+                  setNoticeToDelete(null);
+                  await executeDeleteNotice(targetId);
+                }}
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md cursor-pointer text-center"
+              >
+                삭제하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 진단기록 삭제 확인 모달 */}
+      {diagnosisToDelete && (
+        <div className="fixed inset-0 bg-slate-900/65 backdrop-blur-xs flex items-center justify-center p-4 z-[99999] animate-fadeIn">
+          <div className="w-full max-w-sm bg-white border border-[#DFD5C6]/60 rounded-2xl shadow-2xl p-6 relative text-center font-sans overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-1bg bg-rose-600 rounded-t-2xl" style={{ height: "4px" }} />
+            <div className="mx-auto w-12 h-12 rounded-full bg-rose-50/70 flex items-center justify-center text-rose-600 mb-4 animate-pulse">
+              <Trash2 className="w-5 h-5 animate-pulse" />
+            </div>
+            <h3 className="text-base sm:text-lg font-extrabold text-[#2A2826] font-sans">진단 기록 영구 삭제</h3>
+            <p className="text-xs text-[#7A7571] mt-2.5 font-sans leading-relaxed">
+              선택하신 환우의 AI 자가진단 및 소견 기록을 관리 전산망에서 영구 삭제하시겠습니까?
+            </p>
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setDiagnosisToDelete(null)}
+                className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-500 font-sans text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all text-center"
+              >
+                취소하기
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const targetId = diagnosisToDelete;
+                  setDiagnosisToDelete(null);
+                  await executeDeleteDiagnose(targetId);
+                }}
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md cursor-pointer text-center"
+              >
+                삭제하기
+              </button>
+            </div>
           </div>
         </div>
       )}

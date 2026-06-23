@@ -186,7 +186,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
     spine: {
       title: "통증/관절/척추질환 클리닉",
       subtitle: "골반 관절 및 비대칭의 즉각적 교정",
-      desc: "통증을 없애는 것도 중요하지만 해당 증상이 일어나게 된 과정을 함께 치료합니다. 만성적 문제를 유발하는 자세이상을 교정하고 관절의 심부근육 활성도를 높입니다.",
+      desc: "통증을 없애는 것도 중요하지만 해당 증상이 일어나게 된 과정을 함께 치료합니다.\n만성적 문제를 유발하는 자세이상을 교정하고 관절의 심부근육 활성도를 높입니다.",
       diseases: "무릎관절염, 어깨질환: 오십견/회전근개 손상, 척추(협착증/디스크), 외상(스포츠, 교통사고)",
       diseasesList: [
         "무릎관절염",
@@ -195,17 +195,16 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         "외상 (스포츠, 교통사고)"
       ],
       benefits: [
-        "심부 안정화 대관절 침법을 통한 관절 깊숙한 유착 해제 및 자가 가동범위 확대",
-        "국가대표 선수들이 전수받은 침치료 기법으로 빠른 근섬유 부종 해소",
-        "수승화강 요법을 결합하여 염증 독기로 타오르는 관절 열 증세 신속 진정",
-        "삼잘 보원탕을 통한 등뼈 주위 기혈 강화 및 골감소 회복"
+        "통증: 두통, 통풍, 자세이상(거북목, 굽은 등), 섬유근육통, 만성 통증",
+        "관절: 어깨, 팔꿈치, 고관절, 무릎, 발목, 손가락/발가락",
+        "척추: 목/허리 디스크, 척추 협착증, 전방전위증, 자세이상"
       ],
       image: "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=5c1a4aa2-b614-49e8-b4e0-034a1d115b97"
     },
     internal: {
-      title: "비위(脾胃) 및 만성 장내과 클리닉",
+      title: "내과질환 클리닉",
       subtitle: "잘 먹고, 잘 통하는 행복한 소화기",
-      desc: "복부 불쾌감, 위경련, 상부 역류성 식도염, 설사 및 지독한 장 정체를 상한의학 이론과 정밀 유전자 진단을 통해 과학적으로 치료합니다. 위장 피로도를 경감하여 건강한 영양 흡수를 증폭시킵니다.",
+      desc: "소화기계, 호흡기계, 순환기계, 내분비계, 비뇨생식기계, 자율신경계의 문제를 각자 분리해서 보지 않고 통합적인 관점에서 살피고 치료합니다.",
       diseases: "저체중/과체중, 소화기, 대사질환(고혈압, 고지혈증, 당뇨), 불면증",
       diseasesList: [
         "저체중 / 과체중",
@@ -214,17 +213,18 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         "불면증"
       ],
       benefits: [
-        "삼잘 보원의 보위 탕약 조제로 위 벽 점막 세포의 탄탄한 자가 복구 보조",
-        "복부 가스가 소통되고 단전을 덥혀주는 스마트 온열 및 침구 관리 시스템",
-        "체질 맞춤 식이 가이드북 제공으로 매일의 잘먹는 패턴 완비",
-        "독소 역류로 인한 두통, 만성 피로의 연대 고리 원인 차단"
+        "소화기계: 만성소화불량, 저체중, 변비, 과민성장증후군, 역류성위식도질환",
+        "호흡기계: 만성기침, 알레르기(비염, 천식)",
+        "순환기계: 가슴 두근거림, 고혈압",
+        "내분비계: 과체중, 당뇨, 고지혈증, 만성피로",
+        "자율신경계: 자율신경 실조증, 미주신경성 실신, 이석증, 공황장애"
       ],
       image: "/images/hygienic_premium_hanbang_herbal_1780497683155.png"
     },
     allergy: {
-      title: "알레르기 & 면역 회복 클리닉",
+      title: "알레르기 클리닉",
       subtitle: "무너진 면역 장벽의 자생 강화",
-      desc: "만성 비염, 아토피, 알레르기 두드러기, 천식 등은 체내 면역 단절이 한계치에 다다랐을 때 표출됩니다. 장 장벽의 담음 독소를 기계적으로 디톡스하여 자극물질에 과민 반응하지 않는 림프 세포 순환을 확립시킵니다.",
+      desc: "결과로서의 증상 뿐 아니라 그 이면의 선행과정들을 함께 다스리는 것을 목표로 합니다.",
       diseases: "비염, 결막염, 두드러기, 아토피/천식",
       diseasesList: [
         "비염 및 결막염",
@@ -232,17 +232,17 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         "아토피 / 천식"
       ],
       benefits: [
-        "장청 해독 탕약 조제로 장 누수 증상 및 전신 혈관 노폐물 정화",
-        "항염증 특허 약침 성분 처방으로 피부 비강 점막 장벽의 과립세포 안정화",
-        "자율신경 조절 처방법을 통하여 교감 신경 흥문 완화 및 숙면 정복",
-        "체질 침 치료를 통한 만성적인 한열 편중 체질성 불균형 극복"
+        "알레르기성 비염",
+        "알레르기성 결막염",
+        "만성 두드러기",
+        "아토피/천식"
       ],
       image: "/images/clinic_interior_1779805270752.png"
     },
     cancer: {
-      title: "한양방 통합 암 요관리 클리닉",
+      title: "통합 암관리",
       subtitle: "항암 부작용 완화 및 종양 미세환경 정화",
-      desc: "암 치료 과정에서 발생하는 피로, 메스꺼움, 심한 기력 손실을 겪는 환우분들을 위해 과학적인 면역 조력 보조 약학을 병행합니다. 대학병원 암 스케줄을 무리 없이 완료할 수 있도록 지원합니다.",
+      desc: "표준 항암치료와 병행 가능한 과학적이고 무해한 천연화합물 요법을 지향합니다. 재발 및 전이 가능성을 낮추고 항암부작용을 줄입니다. 암종과 병기에 따라 다른 치료법을 적용합니다.",
       diseases: "재발 및 전이 관리, 항암부작용 관리, 암종과 병기에 따라 다른 치료법 적용",
       diseasesList: [
         "재발 및 전이 관리",
@@ -250,17 +250,17 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         "암종과 병기 맞춤 치료"
       ],
       benefits: [
-        "위암, 대장암, 자궁암 및 유방암 등 암종별 세분화된 진료 프로토콜 도입",
-        "종양 억제 면역 인자 분비를 촉진하는 고순도 산삼 약침 요법 진행",
-        "심신 흥분감을 진정시키는 안신(安神) 뇌파 유도 시스템 구비",
-        "임상 통계 자료와 논문에 수차례 입증된 부작용 제로의 청정 약재만 처방"
+        "재발 및 전이 관리",
+        "항암 부작용 관리",
+        "암종과 병기 맞춤 치료",
+        "암환자 식이요법"
       ],
       image: "/images/samjal_crew_1779805249409.png"
     },
     detox: {
-      title: "항노화 & 생체 해독 클리닉",
+      title: "항노화/해독",
       subtitle: "맑은 혈액과 가볍고 활기찬 신체 리듬 치료",
-      desc: "체내 세포 속에 잔류해 노화를 재촉하는 대사 가스 찌꺼기와 활성 산소를 소거하여 미토콘드리아 청량도를 높여줍니다. 오장육부의 정화력을 깨우고 활력을 되찾아 줍니다.",
+      desc: "노화는 피할 수 없는 자연 현상이 아니라, 세포내 유전자 손상과 대사기능의 저하로 인해 발생하는 ‘관리가능한 생물학적 프로세스’입니다. 본원만의 독자적인 추출 공정으로 완성한 천연화합물 복합체를 통해, 노화의 근본 원인인 세포시계를 늦추고 젊음의 대사 스위치를 다시 켭니다.",
       diseases: "항노화유전자 활성화, 텔로머레이즈 활성화, 항산화시스템 활성화",
       diseasesList: [
         "항노화 유전자 활성화",
@@ -268,10 +268,9 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         "항산화 시스템 활성화"
       ],
       benefits: [
-        "삼잘 장정 디톡스 요법 및 가동성 극대화를 위한 스마트 순환 치료 시스템",
-        "중성지방 수치를 제어하고 소화 대사 기능을 정화하는 1:1 디톡스 케어",
-        "임상 유효율이 검증된 핵심 안티에이징 생명 보존 활성 처방",
-        "피로 유발 잔류 물질 제거를 위한 환자 특화 맞춤 가이드라인"
+        "항노화 유전자 활성화",
+        "텔로머레이즈 활성화",
+        "항산화/해독 시스템 활성화"
       ],
       image: "/images/hygienic_premium_hanbang_herbal_1780497683155.png"
     }
@@ -355,10 +354,10 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
                       <span className="inline sm:hidden">통증/관절/<br />척추질환 클리닉</span>
                       <span className="hidden sm:inline">통증/관절/척추질환 클리닉</span>
                     </>
-                  ) : current.title === "비위(脾胃) 및 만성 장내과 클리닉" ? (
+                  ) : current.title === "내과질환 클리닉" ? (
                     <>
-                      <span className="inline sm:hidden">비위 및 만성<br />장내과 클리닉</span>
-                      <span className="hidden sm:inline">비위(脾胃) 및 만성 장내과 클리닉</span>
+                      <span className="inline sm:hidden">내과질환 클리닉</span>
+                      <span className="hidden sm:inline">내과질환 클리닉</span>
                     </>
                   ) : (
                     current.title
@@ -366,7 +365,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
                 </h3>
               </div>
               <div className="w-12 h-1 bg-[#0F2C59]" />
-              <p className="text-sm sm:text-base font-sans text-slate-600 leading-relaxed">
+              <p className="text-sm sm:text-base font-sans text-slate-600 leading-relaxed whitespace-pre-line">
                 {current.desc}
               </p>
 

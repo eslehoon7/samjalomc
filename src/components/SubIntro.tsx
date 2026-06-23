@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { db } from "../firebase";
 import { collection, onSnapshot } from "firebase/firestore";
 
@@ -68,6 +68,15 @@ const defaultActivities = [
 export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroProps) {
   const [activities, setActivities] = useState<any[]>(defaultActivities);
   const [kimPhoto, setKimPhoto] = useState<string>("/images/researcher_portrait_1780500341416.png");
+  const [showPcAlert, setShowPcAlert] = useState<boolean>(false);
+
+  const handleCallClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (!isMobile) {
+      e.preventDefault();
+      setShowPcAlert(true);
+    }
+  };
   const [introImages, setIntroImages] = useState<Record<string, string>>({
     philosophy_main: "/images/clinic_interior_modern_1780495390125.png",
     suseung_hwagang: "/images/clinic_interior_modern_1780495390125.png",
@@ -394,6 +403,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                   </button>
                   <a
                     href="tel:02-6952-4067"
+                    onClick={handleCallClick}
                     className="px-6 py-2.5 bg-white border border-slate-200 font-sans text-slate-700 hover:bg-slate-50 rounded-lg text-sm tracking-wider transition-all flex items-center justify-center cursor-pointer"
                   >
                     대표번호 상담전화
@@ -521,6 +531,35 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
         </div>
 
       </div>
+
+      {showPcAlert && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs font-sans">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 text-center animate-[fadeIn_0.2s_ease-out] space-y-4">
+            <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mx-auto text-amber-500">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-base font-extrabold text-[#0F2C59]">모바일 접속 안내</h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-sans">
+                PC 기기에서는 바로 전화 연결이 어렵습니다.<br />
+                <span className="text-[#0F2C59] font-bold">모바일 기기로 접속해야 합니다.</span>
+              </p>
+              <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-xl">
+                <p className="text-[10px] text-slate-400 font-sans">노원점 대표번호</p>
+                <p className="text-sm font-bold text-[#0F2C59] font-mono mt-0.5">02-6952-4067</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowPcAlert(false)}
+              className="w-full py-2.5 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-sm font-sans"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -124,7 +124,7 @@ export default function Header({ activeTab, setActiveTab, openReservationModal }
                   ? "text-white/90"
                   : "text-[#0F2C59] group-hover:text-white"
               }`} />
-              예약 / 자가진단
+              예약하기
             </button>
           </div>
 
@@ -176,7 +176,7 @@ export default function Header({ activeTab, setActiveTab, openReservationModal }
                   className="w-full flex items-center justify-center gap-2 bg-[#0F2C59] text-white py-3 rounded-lg text-sm font-sans tracking-wider shadow cursor-pointer"
                 >
                   <Calendar className="w-4 h-4" />
-                  예약 / AI 자가진단 신청
+                  예약하기
                 </button>
               </div>
             </div>

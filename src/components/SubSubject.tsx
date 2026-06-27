@@ -390,10 +390,10 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
                   setActiveTab("reservation");
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#0F172A] hover:bg-[#0F2C59] text-white transition-all duration-300 rounded-lg text-sm font-sans tracking-wide cursor-pointer font-semibold shadow-sm"
+                className="uiverse-btn inline-flex items-center justify-center gap-2 font-sans font-semibold"
               >
-                <span>이 진료과목 온라인 예약/AI진단 상담</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>온라인 예약</span>
+                <ArrowRight className="w-4 h-4 text-current" />
               </button>
             </div>
           </div>

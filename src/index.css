@@ -50,3 +50,24 @@ body {
   }
 }
 
+.uiverse-btn {
+  color: #888888;
+  width: 170px;
+  padding: 0.7em 0.5em;
+  font-size: 18px;
+  border-radius: 0.5em;
+  background: #ffffff;
+  cursor: pointer;
+  border: 1px solid #e8e8e8;
+  transition: all 0.3s;
+  box-shadow: 6px 6px 12px #c5c5c5, -6px -6px 12px #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uiverse-btn:active {
+  color: #666;
+  box-shadow: inset 4px 4px 12px #c5c5c5, inset -4px -4px 12px #ffffff;
+}
+

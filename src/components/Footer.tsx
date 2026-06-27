@@ -48,6 +48,9 @@ export default function Footer({ setActiveTab }: FooterProps) {
             <p>
               <span className="font-medium text-white mr-1.5">구리점</span> 경기도 구리시 체육관로 28, 3층(수택동, 고덕프라자) <span className="text-slate-600 px-0.5">l</span> 031.555.3555 <span className="text-slate-600 px-0.5">l</span> 대표: 제정진 <span className="text-slate-600 px-0.5">l</span> 사업자번호: 288-35-01504
             </p>
+            <p className="!mt-4 text-sm sm:text-[14px]">
+              <span className="font-medium text-white mr-1.5">대표상담번호</span> 02.6952.4067 <span className="text-slate-600 px-0.5">l</span> <span className="font-medium text-white mr-1.5">이메일</span> jjy4667@naver.com
+            </p>
           </div>
 
         </div>

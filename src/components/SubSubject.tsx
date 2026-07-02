@@ -196,7 +196,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
       ],
       benefits: [
         "통증: 두통, 통풍, 자세이상(거북목, 굽은 등), 섬유근육통, 만성 통증",
-        "관절: 어깨, 팔꿈치, 고관절, 무릎, 발목, 손가락/발가락",
+        "관절: 어깨(오십견, 회전근개 파열), 팔꿈치(테니스엘보, 관절염), 고관절, 무릎(퇴행성 관절염), 발목, 손가락/발가락",
         "척추: 목/허리 디스크, 척추 협착증, 전방전위증, 자세이상"
       ],
       image: "https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=5c1a4aa2-b614-49e8-b4e0-034a1d115b97"
@@ -213,9 +213,9 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         "불면증"
       ],
       benefits: [
-        "소화기계: 만성소화불량, 저체중, 변비, 과민성장증후군, 역류성위식도질환",
+        "소화기계: 만성소화불량, 저체중, 변비, 과민성장증후군, 역류성 위식도질환",
         "호흡기계: 만성기침, 알레르기(비염, 천식)",
-        "순환기계: 가슴 두근거림, 고혈압",
+        "순환기계: 가슴 두근거림, 고혈압, 울혈성 심부전, 부종",
         "내분비계: 과체중, 당뇨, 고지혈증, 만성피로",
         "자율신경계: 자율신경 실조증, 미주신경성 실신, 이석증, 공황장애"
       ],

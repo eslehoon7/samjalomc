@@ -16,17 +16,17 @@ export default function SamjalValue() {
       title: "잘먹기",
       desc: (
         <>
-          먹는 것이 곧 내 몸이 됩니다.<br />
+          먹는 것이 곧 내 몸을 이룹니다.<br />
           좋은 음식을 잘 받아들일 수 있는 상태가 되어야 합니다.
         </>
       ),
     },
     {
-      title: "잘보내기",
+      title: "잘비우기",
       desc: (
         <>
-          호흡, 대/소변, 땀을 통해 불필요한 노폐물을 원활히 배출할 수 있어야 합니다.<br />
-          잘 보내야 잘 채울 수 있습니다.
+          잘 비워내야 잘 채울 수 있습니다.<br />
+          호흡, 대변, 소변, 땀을 통해 불필요한 노폐물을 원활히 배출할 수 있어야 합니다.
         </>
       ),
     },
@@ -45,7 +45,7 @@ export default function SamjalValue() {
           className="text-center space-y-3 mb-16"
         >
           <p className="text-xs sm:text-sm font-sans text-[#0F2C59] tracking-[0.3em] uppercase font-bold">
-            Health Philosophy & Harmony
+            Health philosophy
           </p>
           <h2 className="text-2xl sm:text-4xl font-sans text-[#0F172A] font-bold tracking-wide">
             건강의 기본기 세가지 잘하기
@@ -71,7 +71,7 @@ export default function SamjalValue() {
           >
             <div className="w-full max-w-[400px] overflow-hidden rounded-xl bg-transparent mix-blend-multiply flex items-center justify-center p-1">
               <img
-                src="/images/samjal_characters_colored.jpg"
+                src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EC%82%BC%EC%9E%98%ED%95%9C%EC%9D%98%EC%9B%90%20%ED%94%BD%ED%86%A0%EA%B7%B8%EB%9E%A8-1.png?alt=media&token=1cb77da8-a4fc-4a8a-afd1-4994b247af08"
                 alt="삼잘한의원 캐릭터 일러스트"
                 className="w-full h-auto object-contain group-hover:scale-102 transition-transform duration-700"
                 referrerPolicy="no-referrer"

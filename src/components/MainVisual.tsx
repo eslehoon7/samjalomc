@@ -25,11 +25,11 @@ export default function MainVisual({ setActiveTab, setIntroSubTab }: MainVisualP
     },
     {
       image: "https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EC%97%90%EC%84%BC%EC%85%9C%20%EC%B2%98%EB%B0%A91_%EC%88%98%EC%9B%90%EB%8B%A8.png?alt=media&token=9617779b-d2e3-4f90-b089-26c3fd436d1a",
-      title: "한약과 현대과학적 추출법",
+      title: "프리미엄 에센셜 처방",
       subtitle: "",
       desc: (
         <>
-          첨단 제약기술이 만나 빚어진 삼잘한의원 고유의 치료제
+          한약과 현대과학적 추출법, 첨단 제약기술이 만나 빚어진 삼잘한의원 고유의 치료제
         </>
       ),
       linkTab: "intro",

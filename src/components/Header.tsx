@@ -73,7 +73,7 @@ export default function Header({ activeTab, setActiveTab, openReservationModal }
                 삼잘한의원
               </h1>
               <p className={`text-[10px] sm:text-xs font-sans tracking-widest mt-1 uppercase transition-colors duration-300 ${isTransparentMode ? "text-slate-300" : "text-[#64748B]"}`}>
-                samjal clinic
+                SAMJAL KMED CLINIC
               </p>
             </div>
           </div>

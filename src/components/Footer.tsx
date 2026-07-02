@@ -34,7 +34,7 @@ export default function Footer({ setActiveTab }: FooterProps) {
                   삼잘한의원
                 </h2>
                 <p className="text-[10px] sm:text-xs font-sans tracking-widest mt-1.5 uppercase text-white font-medium">
-                  samjal clinic
+                  SAMJAL KMED CLINIC
                 </p>
               </div>
             </div>
@@ -46,10 +46,10 @@ export default function Footer({ setActiveTab }: FooterProps) {
               <span className="font-medium text-white mr-1.5">노원점</span> 서울시 노원구 노해로 482, 7층(상계동, 덕영빌딩) <span className="text-slate-600 px-0.5">l</span> 02.6952.4067 <span className="text-slate-600 px-0.5">l</span> 대표: 전준영 <span className="text-slate-600 px-0.5">l</span> 사업자번호: 288-35-01504
             </p>
             <p>
-              <span className="font-medium text-white mr-1.5">구리점</span> 경기도 구리시 체육관로 28, 3층(수택동, 고덕프라자) <span className="text-slate-600 px-0.5">l</span> 031.555.3555 <span className="text-slate-600 px-0.5">l</span> 대표: 제정진 <span className="text-slate-600 px-0.5">l</span> 사업자번호: 288-35-01504
+              <span className="font-medium text-white mr-1.5">구리점</span> 경기도 구리시 체육관로 28, 3층(수택동, 고덕프라자) <span className="text-slate-600 px-0.5">l</span> 031.555.3555 <span className="text-slate-600 px-0.5">l</span> 대표: 제정진 <span className="text-slate-600 px-0.5">l</span> 사업자번호: 132-96-06338
             </p>
             <p className="!mt-4 text-sm sm:text-[14px]">
-              <span className="font-medium text-white mr-1.5">대표상담번호</span> 02.6952.4067 <span className="text-slate-600 px-0.5">l</span> <span className="font-medium text-white mr-1.5">이메일</span> jjy4667@naver.com
+              <span className="font-medium text-white mr-1.5">대표상담문의</span> 02-6952-4067 <span className="text-slate-600 px-0.5">l</span> <span className="font-medium text-white mr-1.5">노원점</span> 02-6952-4067 <span className="text-slate-600 px-0.5">l</span> <span className="font-medium text-white mr-1.5">구리점</span> 031-555-3555 <span className="text-slate-600 px-0.5">l</span> <span className="font-medium text-white mr-1.5">이메일</span> jjy4667@naver.com
             </p>
           </div>
 
@@ -59,8 +59,6 @@ export default function Footer({ setActiveTab }: FooterProps) {
         <div className="pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-4">
           <p>© 2026 Samjal Clinic. All Rights Reserved. Designed for scientific & hygienic care.</p>
           <div className="flex gap-4 flex-wrap justify-center sm:justify-start">
-            <a href="#" className="hover:text-slate-300 transition-colors">이용약관</a>
-            <span>|</span>
             <a href="#" className="hover:text-slate-300 transition-colors">개인정보처리방침</a>
             <span>|</span>
             <a href="#" className="hover:text-slate-300 transition-colors">의료광고심의준수</a>

@@ -214,14 +214,13 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                 <span className="text-xs font-sans text-[#0F2C59] uppercase tracking-widest block font-semibold">
                   Our Vision & Philosophy
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
+                <h3 className="text-base sm:text-lg font-sans text-slate-700 font-normal leading-relaxed">
                   결과만 치료하지 않습니다.<br />과정도 함께 치료합니다.
                 </h3>
                 <div className="w-12 h-1 bg-[#0F2C59] mx-auto" />
                 <p className="text-base sm:text-lg font-sans text-slate-700 leading-relaxed font-normal mx-auto max-w-2xl">
-                  손가락만한 구멍을 내버려두면 점점 커져서 댐이 무너지게 됩니다.<br />
-                  우리의 건강도 마찬가지입니다. 사소한 기능적 문제를 방치하면 <br />
-                  오랜 시간에 걸쳐 누적되어 어느 순간 우리의 눈에 띌 정도로 체감됩니다.
+                  통증을 없애는 것도 중요하지만 해당 증상이 일어나게 된 과정도 함께 치료합니다.<br />
+                  만성적 문제를 유발하는 자세이상을 교정하고 관절의 심부근육 활성도를 높입니다.
                 </p>
                 <p className="text-xs sm:text-sm font-sans text-slate-500 leading-relaxed font-light mx-auto max-w-3xl">
                   삼잘한의원에서는 눈앞의 증상에 치중하기보다 다시 기본으로 돌아가 현재의 증상에 이르게 된 그 이면의 과정을 진단하고<br className="hidden md:block" />
@@ -251,7 +250,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                     <div className="space-y-2">
                       <h4 className="text-lg sm:text-xl font-sans font-bold text-[#0F172A] flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-[#0F2C59]" />
-                        심부 안정화 대관절 침법(고유의 침술)
+                        대관절 동기침법(관절 기능부전 치료)
                       </h4>
                       <p className="text-sm font-sans text-slate-600 leading-relaxed pl-4">
                         경희대병원 출신 한의학 박사이자 패럴림픽 국가대표팀 주치의까지 역임한 제정진 원장이 30년이 넘는 임상경험을 통해서 창안하고 검증한 고유의 침법입니다. 자세분석과 부하검사를 통해 저활성 근육을 진단하고, 장침을 활용해 체간 및 주요 관절부위의 속근육을 활성화하는 효과가 있습니다. 결과적으로 신진대사가 원활해지고 관절의 안정성이 향상되어 통증질환 뿐 아니라 내과질환에도 효과적입니다.
@@ -261,7 +260,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                     <div className="space-y-2">
                       <h4 className="text-lg sm:text-xl font-sans font-bold text-[#0F172A] flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-[#0F2C59]" />
-                        삼잘에센셜(고유의 치료제 라인)
+                        삼잘에센셜(브랜드 고유 치료제)
                       </h4>
                       <p className="text-sm font-sans text-slate-600 leading-relaxed pl-4">
                         패럴림픽 국가대표팀 주치의를 역임한 제정진 박사, 경희대병원 출신의 한방재활의학 전문의 전준영 원장, 천연물과학 전문가이자 팜힐연구소 대표 김유정 박사. 전문가 3인이 공동연구해 창안한 삼잘한의원 고유의 치료제입니다. 질환에 따라 가장 효과적인 약재 선별부터 원산지와 품질관리, 성분에 따른 최적의 추출법 적용, 생체이용률 향상을 위한 첨단 제약기술인 SEDDS적용까지 세심하게 설계하고 정성껏 조제하였습니다.
@@ -274,7 +273,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                   <div className="aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 shadow-md">
                     <CleanLoadImage
                       src="https://firebasestorage.googleapis.com/v0/b/onbrandium.firebasestorage.app/o/samjal-images%2F%EB%8C%80%EA%B4%80%EC%A0%88%20%EB%8F%99%EA%B8%B0%EC%B9%A8%EB%B2%95.jpg?alt=media&token=5c1a4aa2-b614-49e8-b4e0-034a1d115b97"
-                      alt="심부 안정화 대관절 침법 치료 정경"
+                      alt="대관절 동기침법(관절 기능부전 치료) 치료 정경"
                       className="w-full h-full object-cover hover:scale-105"
                     />
                   </div>
@@ -392,15 +391,14 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                   &ldquo;진료받을지 고민된다면 먼저 친절히 상담해 보세요&rdquo;
                 </p>
                 <div className="flex justify-center flex-wrap gap-4">
-                  <button
-                    onClick={() => {
-                      setActiveTab("reservation");
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="px-6 py-2.5 bg-[#0F2C59] text-white font-sans hover:bg-[#0F172A] rounded-lg text-sm font-bold tracking-wider transition-all cursor-pointer"
+                  <a
+                    href="https://naver.me/xtNNu5e6"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-6 py-2.5 bg-[#0F2C59] text-white font-sans hover:bg-[#0F172A] rounded-lg text-sm font-bold tracking-wider transition-all cursor-pointer flex items-center justify-center"
                   >
                     온라인 예약하기 &rarr;
-                  </button>
+                  </a>
                   <a
                     href="tel:02-6952-4067"
                     onClick={handleCallClick}

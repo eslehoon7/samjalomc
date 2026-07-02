@@ -102,10 +102,10 @@ export default function SignatureTreatment({ setActiveTab, setIntroSubTab }: Sig
                 className="w-full h-full object-cover group-hover:scale-[1.025] md:group-hover:scale-110 transition-transform duration-1000 ease-in-out"
                 referrerPolicy="no-referrer"
               />
-              {/* 기본적으로 어둠을 주어 텍스트 시인성을 확보하고, 호버시 더 선명하게 가로막 */}
-              <div className="absolute inset-0 bg-slate-950/75 group-hover:bg-slate-950/65 transition-colors duration-700 z-10" />
-              {/* 블루/네이비 피 필터 매직 조합 */}
-              <div className="absolute inset-0 bg-[#0F2C59]/20 mix-blend-multiply group-hover:bg-transparent transition-all duration-700 z-10" />
+              {/* 기본적으로 어둠을 주어 텍스트 시인성을 확보하고, 호버시 완전히 맑아짐 */}
+              <div className="absolute inset-0 bg-slate-950/75 group-hover:bg-transparent transition-colors duration-700 z-10" />
+              {/* 블루/네이비 피 필터 조합 - 마우스 안 올렸을 때 파랗게 보이게 하고 호버시 사라짐 */}
+              <div className="absolute inset-0 bg-[#0F2C59]/15 mix-blend-multiply group-hover:bg-transparent transition-all duration-700 z-10" />
             </div>
 
             {/* 본문 정보 영역 */}

@@ -57,8 +57,8 @@ export default function SubLocation() {
   const markerRef = useRef<L.Marker | null>(null);
 
   const branchCoords: Record<string, [number, number]> = {
-    nowon: [37.6543, 127.0609], // 노원역 6번 출구 덕영빌딩
-    guri: [37.6019, 127.1424]   // 구리시 경춘로 186 삼잘빌딩
+    nowon: [37.6543, 127.0609], // 노원역 5번출구 우리은행 건물 7층
+    guri: [37.5880, 127.1376]   // 경기도 구리시 수택동 873-8
   };
 
   useEffect(() => {
@@ -285,7 +285,7 @@ export default function SubLocation() {
       name: "삼잘한의원 노원점 (대표원장 전준영)",
       address: "서울시 노원구 노해로 482, 7층 (덕영빌딩)",
       phone: "02-6952-4067",
-      subway: "노원역 6번 출구 바로 앞 도보 1분 (신한은행 건물 7층)",
+      subway: "노원역 5번출구 도보 1분(우리은행 건물 7층), 건물 뒤편 무료주차",
       hours: [
         { label: "월·화·목·금요일", val: "10:00 - 19:00" },
         { label: "수요일", val: "10:00 - 17:00" },
@@ -340,10 +340,10 @@ export default function SubLocation() {
       naverMapUrl: "https://naver.me/xtNNu5e6"
     },
     guri: {
-      name: "삼잘한의원 구리본점 (대표원장 제정진)",
-      address: "경기도 구리시 경춘로 186, 3층 (삼잘빌딩)",
+      name: "삼잘한의원 구리점(대표원장 제정진)",
+      address: "경기도 구리시 수택동 873-8",
       phone: "031-555-3555",
-      subway: "경의중앙선 구리역 1번 출구 도보 5분 현대아울렛 사거리 중앙",
+      subway: "8호선 장자호수공원역 6번출구 도보 3분, 1층 무료주차",
       hours: [
         { label: "월·수·금요일", val: "09:00 - 19:00" },
         { label: "화요일", val: "09:00 - 13:00", note: "점심시간 없이 논스톱 진료" },
@@ -355,7 +355,7 @@ export default function SubLocation() {
         quote: "“기본부터 탄탄하게, 여러분의 건강을 지키겠습니다”",
         lines: [
           "안녕하세요, 삼잘한의원 구리점 제정진 원장입니다.",
-          "증상이라는 결과보다 그것에 이르게 된 과정에 집중해 진료하고 있습니다."
+          "증상이라는 결과에만 매몰되지 않고 그것에 이르게 된 과정까지 함께 살피고 있습니다."
         ]
       },
       doctor: {
@@ -392,7 +392,7 @@ export default function SubLocation() {
         "경희대 내과 전문 원장단의 오장육부 소화기 밀착 클리닉 운영"
       ],
       image: "/images/samjal_crew_professional_1780495405627.png",
-      naverMapUrl: "https://map.naver.com/v5/search/%EA%B2%BD%EA%B8%B0%EB%8F%84%20%EA%B5%AC%EB%A6%AC%EC%8B%9C%20%EA%B2%BD%EC%B6%98%EB%A1%9C%20186"
+      naverMapUrl: "https://map.naver.com/v5/search/%EA%B2%BD%EA%B8%B0%EB%8F%84%20%EA%B5%AC%EB%A6%AC%EC%8B%9C%20%EC%88%98%ED%83%9D%EB%8F%99%20873-8"
     }
   };
 
@@ -906,7 +906,7 @@ export default function SubLocation() {
           {/* 지점 사진 및 가상 약도 기와 타일 디자인 */}
           <div className="lg:col-span-6 flex flex-col justify-between gap-6">
             {/* 실질적으로 보이는 네이버 지도 렌더러 영역 */}
-            <div className="aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 shadow-sm relative bg-[#F4F4F2] group transition-all duration-300 hover:border-[#03C75A]/60 select-none">
+            <div className="flex-grow min-h-[320px] sm:min-h-[420px] rounded-xl overflow-hidden border border-slate-200 shadow-sm relative bg-[#F4F4F2] group transition-all duration-300 hover:border-[#03C75A]/60 select-none">
               {/* 실제 Leaflet 지도가 채워지는 DIV */}
               <div 
                 ref={mapContainerRef} 
@@ -971,21 +971,6 @@ export default function SubLocation() {
                 <span className="text-[7.5px] text-slate-400 mt-0.5 leading-none">1:200</span>
               </div>
 
-            </div>
-
-            {/* 지점 특성 칩 그리드 */}
-            <div className="bg-slate-50/50 border border-slate-200 rounded-xl p-6 text-left space-y-3">
-              <h4 className="text-xs sm:text-sm font-sans font-bold text-[#0F2C59] uppercase tracking-widest">
-                지점 진료 특장점
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-sans text-slate-600">
-                {current.features.map((ft, index) => (
-                  <div key={index} className="flex items-center gap-2 border-b border-slate-100 pb-2 min-w-0">
-                    <span className="text-[#0F2C59] font-bold flex-shrink-0">✓</span>
-                    <span className="text-[11px] sm:text-xs leading-tight tracking-tight whitespace-nowrap sm:whitespace-normal overflow-hidden text-ellipsis">{ft}</span>
-                  </div>
-                ))}
-              </div>
             </div>
 
             {/* 가상 주차 및 예약 지원 */}

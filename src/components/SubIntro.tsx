@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../firebase";
 import { collection, onSnapshot } from "firebase/firestore";
+import { Download } from "lucide-react";
 
 interface CleanLoadImageProps {
   src: string;
@@ -277,12 +278,22 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                       className="w-full h-full object-cover hover:scale-105"
                     />
                   </div>
-                  <div className="aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 shadow-md">
-                    <CleanLoadImage
-                      src={introImages.wisubae_essential}
-                      alt="에센셜 프리미엄 한약재"
-                      className="w-full h-full object-cover object-[center_80%] hover:scale-105"
-                    />
+                  <div className="space-y-4">
+                    <div className="aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 shadow-md">
+                      <CleanLoadImage
+                        src={introImages.wisubae_essential}
+                        alt="에센셜 프리미엄 한약재"
+                        className="w-full h-full object-cover object-[center_80%] hover:scale-105"
+                      />
+                    </div>
+                    <a
+                      href="/samjal_essential_line.pdf"
+                      download="samjal_essential_line.pdf"
+                      className="w-full py-3 bg-[#0F2C59] hover:bg-slate-800 text-white font-sans rounded-xl text-sm font-bold tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm border border-transparent"
+                    >
+                      <Download className="w-4 h-4" />
+                      에센셜 라인 한눈에 살펴보기
+                    </a>
                   </div>
                 </div>
               </div>

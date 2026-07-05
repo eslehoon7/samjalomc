@@ -259,18 +259,18 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
     },
     detox: {
       title: "항노화/해독",
-      subtitle: "맑은 혈액과 가볍고 활기찬 신체 리듬 치료",
-      desc: "노화는 피할 수 없는 자연 현상이 아니라, 세포내 유전자 손상과 대사기능의 저하로 인해 발생하는 ‘관리가능한 생물학적 프로세스’입니다. 본원만의 독자적인 추출 공정으로 완성한 천연화합물 복합체를 통해, 노화의 근본 원인인 세포시계를 늦추고 젊음의 대사 스위치를 다시 켭니다.",
-      diseases: "항노화유전자 활성화, 텔로머레이즈 활성화, 항산화시스템 활성화",
+      subtitle: "세포의 시간을 되돌리는 생물학적 안티에이징 포뮬러",
+      desc: "노화는 피할 수 없는 자연 현상이 아니라, 세포내 유전자 손상과 대사기능의 저하로 인해 발생하는 ‘관리가능한 생물학적 프로세스’입니다.\n본원만의 독자적인 추출 공정으로 완성한 ‘셀리뉴얼’을 통해, 노화의 근본 원인인 세포시계를 늦추고 젊음의 대사 스위치를 다시 켭니다.",
+      diseases: "텔로머레이즈 활성화, SIRT1 & AMPK 타겟팅, 초강력 항산화 네트워크",
       diseasesList: [
-        "항노화 유전자 활성화",
-        "텔로머레이즈 활성화",
-        "항산화 시스템 활성화"
+        "생물학적 세포 시계의 복원 (텔로머레이즈 활성화)",
+        "장수 유전자 및 대사 스위치 ON (SIRT1 & AMPK 타겟팅)",
+        "세포 산화 및 녹숨 방지 (초강력 항산화 네트워크)"
       ],
       benefits: [
-        "항노화 유전자 활성화",
-        "텔로머레이즈 활성화",
-        "항산화/해독 시스템 활성화"
+        "생물학적 세포 시계의 복원 (텔로머레이즈 활성화)",
+        "장수 유전자 및 대사 스위치 ON (SIRT1 & AMPK 타겟팅)",
+        "세포 산화 및 녹숨 방지 (초강력 항산화 네트워크)"
       ],
       image: "/images/hygienic_premium_hanbang_herbal_1780497683155.png"
     }
@@ -398,86 +398,447 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
             </div>
           </div>
 
-          {/* 오른쪽 시각적 고품질 생성 이미지 결합부 - 2x2 밀접 그리드 배열 (통합암관리는 단일 이미지) */}
+          {/* 오른쪽 시각적 고품질 생성 이미지 결합부 - 2x2 밀접 그리드 배열 */}
           <div key={activeSubTab} className="lg:col-span-5 rounded-2xl overflow-hidden flex flex-col relative justify-center animate-fadeIn">
-            {activeSubTab === "cancer" ? (
-              (() => {
-                const imgList = subjectImages[activeSubTab] || defaultSubjectImages[activeSubTab];
+            <div className="grid grid-cols-2 gap-1.5">
+              {(() => {
+                const list = subjectImages[activeSubTab] || defaultSubjectImages[activeSubTab];
                 const labelsList = subjectLabels[activeSubTab] || subjectImageNames[activeSubTab] || [];
-                const imgUrl = imgList[0];
-                const label = labelsList[0] || "";
-                return (
-                  <div className="relative w-[250px] aspect-square mx-auto rounded-xl overflow-hidden border border-slate-100 shadow-sm group">
-                    <ImageWithLoader
-                      src={imgUrl}
-                      alt={label || `${current.title} 이미지 1`}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                    />
-                    {label && (
-                      <div className="absolute bottom-0 left-0 right-0 h-8 sm:h-10 bg-slate-900/75 backdrop-blur-[2px] flex items-center justify-center px-3 text-center">
-                        <span className="text-xs sm:text-sm text-white font-sans font-medium tracking-wide leading-none">
-                          {label}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()
-            ) : (
-              <div className="grid grid-cols-2 gap-1.5">
-                {(() => {
-                  const list = subjectImages[activeSubTab] || defaultSubjectImages[activeSubTab];
-                  const labelsList = subjectLabels[activeSubTab] || subjectImageNames[activeSubTab] || [];
-                  
-                  if (activeSubTab === "detox") {
-                    return [
-                      { url: "", label: "" },
-                      { url: list[0] || "", label: labelsList[0] || "" },
-                      { url: list[1] || "", label: labelsList[1] || "" },
-                      { url: "", label: "" }
-                    ].map((item, idx) => {
-                      if (!item.url) {
-                        return (
-                          <div key={idx} className="relative aspect-square rounded-xl bg-transparent pointer-events-none" />
-                        );
-                      }
+                
+                if (activeSubTab === "detox") {
+                  return [
+                    { url: "", label: "" },
+                    { url: list[0] || "", label: labelsList[0] || "" },
+                    { url: list[1] || "", label: labelsList[1] || "" },
+                    { url: "", label: "" }
+                  ].map((item, idx) => {
+                    if (!item.url) {
                       return (
-                        <div key={idx} className="relative aspect-square w-full rounded-xl overflow-hidden border border-slate-100 shadow-sm group">
-                          <ImageWithLoader
-                            src={item.url}
-                            alt={item.label || `${current.title} 이미지 ${idx + 1}`}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                          />
-                        </div>
+                        <div key={idx} className="relative aspect-square rounded-xl bg-transparent pointer-events-none" />
                       );
-                    });
-                  }
-
-                  return list.map((imgUrl, idx) => {
-                    const label = labelsList[idx] || "";
+                    }
                     return (
                       <div key={idx} className="relative aspect-square w-full rounded-xl overflow-hidden border border-slate-100 shadow-sm group">
                         <ImageWithLoader
-                          src={imgUrl}
-                          alt={label || `${current.title} 이미지 ${idx + 1}`}
+                          src={item.url}
+                          alt={item.label || `${current.title} 이미지 ${idx + 1}`}
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                         />
-                        {label && (
-                          <div className="absolute bottom-0 left-0 right-0 h-7 sm:h-8 bg-slate-900/75 backdrop-blur-[1px] flex items-center justify-center px-2 text-center">
-                            <span className="text-[10px] sm:text-xs text-white font-sans font-medium tracking-wide leading-none">
-                              {label}
-                            </span>
-                          </div>
-                        )}
                       </div>
                     );
                   });
-                })()}
-              </div>
-            )}
+                }
+
+                return list.map((imgUrl, idx) => {
+                  const label = labelsList[idx] || "";
+                  return (
+                    <div key={idx} className="relative aspect-square w-full rounded-xl overflow-hidden border border-slate-100 shadow-sm group">
+                      <ImageWithLoader
+                        src={imgUrl}
+                        alt={label || `${current.title} 이미지 ${idx + 1}`}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      />
+                      {label && (
+                        <div className="absolute bottom-0 left-0 right-0 h-7 sm:h-8 bg-slate-900/75 backdrop-blur-[1px] flex items-center justify-center px-2 text-center">
+                          <span className="text-[10px] sm:text-xs text-white font-sans font-medium tracking-wide leading-none">
+                            {label}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
+            </div>
           </div>
 
         </div>
+
+        {/* Feather Step Efficacy Analysis Section */}
+        {activeSubTab === "spine" && (
+          <div className="mt-16 pt-16 border-t border-slate-100 animate-fadeIn">
+            <div className="w-full space-y-10 text-left">
+              
+              {/* 헤더 */}
+              <div className="space-y-3 text-left">
+                <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
+                  Feather step <span className="text-slate-500 font-normal text-lg sm:text-xl">페더스텝</span>
+                </h4>
+                <p className="text-xs sm:text-sm font-sans text-slate-500 leading-relaxed">
+                  증상 호전과 함께 관절연골을 동시에 보호하는 관절내 염증 치료제
+                </p>
+                <div className="w-12 h-1 bg-[#0F2C59]" />
+                <p className="text-sm sm:text-base font-sans text-slate-600 leading-relaxed">
+                  다수의 SCI급 논문과 메타분석 및 체계적 문헌고찰을 통해 검증된 원료성분의 관절염 치료효과
+                </p>
+              </div>
+
+              {/* 1. 표준처방과의 효과비교 (우측 카드 배치, 그래프 제거) */}
+              <div className="grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr] gap-8 pt-4 items-stretch text-left">
+                <div className="bg-slate-50/80 p-6 sm:p-8 rounded-2xl border border-slate-100 space-y-6 shadow-sm flex flex-col justify-between">
+                  <div className="space-y-5">
+                    <div className="space-y-4">
+                      <h5 className="font-sans font-bold text-[#0F2C59] text-xl sm:text-2xl leading-tight tracking-tight">
+                        관절염 표준처방
+                        <br />
+                        과의 효과비교
+                      </h5>
+                      <div className="w-10 h-1 bg-[#0F2C59] rounded-full" />
+                    </div>
+                    
+                    <p className="font-sans text-sm sm:text-base md:text-lg text-slate-700 font-semibold leading-relaxed max-w-xl">
+                      전체적으로 표준 소염진통제와 대등한 수준의 진통효과를 보이며
+                      <br />
+                      관절염의 통증이 심한 사람일수록 A성분의 효과가 더 크게 나타났습니다.
+                    </p>
+                  </div>
+
+                  <p className="font-sans text-xs sm:text-sm text-slate-500 leading-relaxed border-t border-slate-200/60 pt-5">
+                    단일 경로만 강제로 차단하여 속쓰림 부작용이 잦고 진통 위주의 효과를 지니는 기존 진통제와 달리,
+                    <br />
+                    본 처방은 염증의 다중 경로를 부드럽게 통제하여 관절을 보호하고 장기 복용에도 속이 편안한 근본적인
+                    <br />
+                    관절 케어를 제공합니다.
+                  </p>
+                </div>
+
+                {/* 우측 카드 */}
+                <div className="relative w-full bg-slate-50/60 rounded-2xl p-5 border border-slate-100 flex flex-col justify-center min-h-[120px] shadow-sm">
+                  <div className="space-y-4">
+                    {/* Image supplied by user */}
+                    <div className="flex items-center justify-center overflow-hidden">
+                      <img 
+                        src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%ED%86%B5%EC%A6%9D-%EA%B4%80%EC%A0%88-%EC%B2%99%EC%B6%94%EC%A7%88%ED%99%98.png?alt=media&token=763b0123-213b-4a00-afe3-6c642785a3a0" 
+                        alt="통증/관절/척추질환 효과비교 그래프" 
+                        className="w-[85%] max-w-full h-auto rounded-lg object-contain hover:scale-[1.01] transition-transform duration-300 mix-blend-multiply contrast-[1.08] brightness-[1.08]"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* Goyo Efficacy Analysis Section for Internal Medicine */}
+        {activeSubTab === "internal" && (
+          <div className="mt-16 pt-16 border-t border-slate-100 animate-fadeIn">
+            <div className="w-full space-y-10 text-left">
+              
+              {/* 헤더 */}
+              <div className="space-y-3 text-left">
+                <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
+                  Goyo <span className="text-slate-500 font-normal text-lg sm:text-xl">고요</span>
+                </h4>
+                <p className="text-xs sm:text-sm font-sans text-slate-500 leading-relaxed">
+                  자연스러운 입면을 유도하는 수면 보조제
+                </p>
+                <div className="w-12 h-1 bg-[#0F2C59]" />
+              </div>
+
+              {/* 기전 및 효과 레이아웃 */}
+              <div className="grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr] gap-8 pt-4 items-stretch text-left">
+                {/* 왼쪽: 효과 및 기전 텍스트 카드들 */}
+                <div className="bg-slate-50/80 p-6 sm:p-8 rounded-2xl border border-slate-100 space-y-8 shadow-sm flex flex-col justify-between">
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <h5 className="font-sans font-bold text-[#0F2C59] text-xl sm:text-2xl leading-tight tracking-tight">
+                        효과 및 기전
+                      </h5>
+                      <div className="w-10 h-1 bg-[#0F2C59] rounded-full" />
+                    </div>
+
+                    <div className="space-y-6">
+                      {/* 기전 1 */}
+                      <div className="space-y-2">
+                        <h6 className="font-sans font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[#0F2C59]" />
+                          수면 유도 스위치 ON <span className="text-xs text-slate-400 font-normal">(GABA & H1 수용체 이중 작용)</span>
+                        </h6>
+                        <p className="font-sans text-xs sm:text-sm text-slate-600 leading-relaxed pl-4">
+                          <span className="font-semibold text-[#0F2C59]">[주성분 I]</span>는 뇌의 억제성 신경전달물질인 GABAa 수용체에 결합합니다. 동시에 H1 수용체를 안정화시켜,
+                          <br />
+                          강제적인 마취 느낌 없이 아주 부드럽고 자연스럽게 깊은 잠에 빠져들게 합니다.
+                        </p>
+                      </div>
+
+                      {/* 기전 2 */}
+                      <div className="space-y-2">
+                        <h6 className="font-sans font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[#0F2C59]" />
+                          멈추지 않는 생각의 스위치 OFF <span className="text-xs text-slate-400 font-normal">(NMDA 수용체 차단)</span>
+                        </h6>
+                        <p className="font-sans text-xs sm:text-sm text-slate-600 leading-relaxed pl-4">
+                          몸은 피곤한데 머릿속이 복잡해 잠 못 이루는 이유는 흥분성 신경전달물질인 글루타메이트가 과활성화되었기 때문입니다. <span className="font-semibold text-[#0F2C59]">[성분 J와 K]</span>가 NMDA 수용체에 작용해 뇌의 과각성 상태를 진정시키고 잡념이 이어지지 않도록 돕습니다.
+                        </p>
+                      </div>
+
+                      {/* 기전 3 */}
+                      <div className="space-y-2">
+                        <h6 className="font-sans font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[#0F2C59]" />
+                          건강한 수면 사이클의 복원 <span className="text-xs text-slate-400 font-normal">(세로토닌 & 멜라토닌 네트워크)</span>
+                        </h6>
+                        <p className="font-sans text-xs sm:text-sm text-slate-600 leading-relaxed pl-4">
+                          단기적인 입면을 넘어, 스스로 잠들 수 있는 생체 리듬을 복원합니다. <span className="font-semibold text-[#0F2C59]">[L성분]</span>이 수면의 질을 결정하는 세로토닌 수용체를 활성화하고, <span className="font-semibold text-[#0F2C59]">[M성분]</span>은 사지의 혈관확장을 유도해 심부체온의 하강과 함께 수면호르몬인 멜라토닌 분비를 촉진하여 안정적인 수면구조를 완성합니다.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 우측: 수면 효과 및 기전 이미지 */}
+                <div className="bg-slate-50/60 rounded-2xl p-6 sm:p-8 border border-slate-100 flex items-center justify-center shadow-sm">
+                  <div className="w-full flex items-center justify-center">
+                    <img 
+                      src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EA%B3%A0%EC%9A%94.png?alt=media&token=58aaf19a-81f9-4972-8a4a-ab607244dbbd" 
+                      alt="고요(Goyo) 수면 기전" 
+                      className="w-[95%] max-w-full h-auto rounded-lg object-contain hover:scale-[1.01] transition-transform duration-300 mix-blend-multiply contrast-[1.08] brightness-[1.08]"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* Allergy-control Efficacy Analysis Section for Allergy */}
+        {activeSubTab === "allergy" && (
+          <div className="mt-16 pt-16 border-t border-slate-100 animate-fadeIn">
+            <div className="w-full space-y-10 text-left">
+              
+              {/* 헤더 */}
+              <div className="space-y-3 text-left">
+                <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
+                  Allergy-control <span className="text-slate-500 font-normal text-lg sm:text-xl">알레르기컨트롤</span>
+                </h4>
+                <p className="text-xs sm:text-sm font-sans text-slate-500 leading-relaxed">
+                  복합기전을 통해 알레르기를 종합적으로 억제하는 알레르기 치료제
+                </p>
+                <div className="w-12 h-1 bg-[#0F2C59]" />
+              </div>
+
+              {/* 기전 및 효과 레이아웃 (고요와 100% 대칭) */}
+              <div className="grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr] gap-8 pt-4 items-stretch text-left">
+                {/* 왼쪽: 효과 및 기전 텍스트 카드들 */}
+                <div className="bg-slate-50/80 p-6 sm:p-8 rounded-2xl border border-slate-100 space-y-8 shadow-sm flex flex-col justify-between">
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <h5 className="font-sans font-bold text-[#0F2C59] text-xl sm:text-2xl leading-tight tracking-tight">
+                        효과 및 기전
+                      </h5>
+                      <div className="w-10 h-1 bg-[#0F2C59] rounded-full" />
+                    </div>
+
+                    <div className="space-y-6">
+                      {/* 기전 1 */}
+                      <div className="space-y-2">
+                        <h6 className="font-sans font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[#0F2C59]" />
+                          다중 항염 및 항산화 네트워크 <span className="text-xs text-slate-400 font-normal">(NF-κB, COX, LOX 다중 차단)</span>
+                        </h6>
+                        <p className="font-sans text-xs sm:text-sm text-slate-600 leading-relaxed pl-4">
+                          알레르기가 만성화되는 이유는 체내 염증 수치가 지속적으로 높게 유지되기 때문입니다. 본 처방은 전신을 순환하며 과민해진 면역 체계를 진정시키고(Th1/Th2 밸런스 정상화), 호흡기와 피부 점막을 공격하는 활성산소를 제거합니다. 강력한 항염·항산화 네트워크를 형성하는 세 가지 핵심성분이 점막의 염증성 사이토카인 발생을 다중(NF-κB, COX, LOX)으로 차단하여, 자극에도 쉽게 반응하지 않는 튼튼한 면역 환경을 조성합니다.
+                        </p>
+                      </div>
+
+                      {/* 치료 기전 이미지 */}
+                      <div className="pt-2 flex items-center justify-center">
+                        <img 
+                          src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EC%95%8C%EB%A0%88%EB%A5%B4%EA%B8%B0.png?alt=media&token=5749d6ca-82d1-4fc0-b612-75a8d4dbde4c" 
+                          alt="알레르기 치료 기전" 
+                          className="w-full max-w-full h-auto rounded-xl object-contain hover:scale-[1.01] transition-transform duration-300 mix-blend-multiply contrast-[1.08] brightness-[1.08]"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 우측: 알레르기컨트롤 제품 패키지 이미지 */}
+                <div className="bg-slate-50/60 rounded-2xl p-6 sm:p-8 border border-slate-100 flex items-center justify-center shadow-sm">
+                  <div className="w-full flex items-center justify-center">
+                    <img 
+                      src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EC%97%90%EC%84%BC%EC%85%9C%20%EC%B2%98%EB%B0%A93_%EC%A2%85%ED%95%A9%EB%AA%A8%EC%9D%8C.png?alt=media&token=6996a5f6-a2fd-4e77-b6ad-33e58d6bfdd0" 
+                      alt="알레르기컨트롤 약제 상자 및 팩 패키지" 
+                      className="w-[95%] max-w-full h-auto rounded-lg object-contain hover:scale-[1.01] transition-transform duration-300 mix-blend-multiply contrast-[1.08] brightness-[1.08]"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* Wisu-bae-annyeong Efficacy Analysis Section for Cancer */}
+        {activeSubTab === "cancer" && (
+          <div className="mt-16 pt-16 border-t border-slate-100 animate-fadeIn">
+            <div className="w-full space-y-10 text-left">
+              
+              {/* 헤더 */}
+              <div className="space-y-3 text-left">
+                <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
+                  수원단(粹源丹) 캡슐
+                </h4>
+                <p className="text-xs sm:text-sm font-sans text-slate-500 leading-relaxed">
+                  근원부터 정화하는 세포해독제
+                </p>
+                <div className="w-12 h-1 bg-[#0F2C59]" />
+              </div>
+
+              {/* 기전 및 효과 레이아웃 (알레르기와 100% 대칭) */}
+              <div className="grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr] gap-8 pt-4 items-stretch text-left">
+                {/* 왼쪽: 효과 및 기전 텍스트 카드들 */}
+                <div className="bg-slate-50/80 p-6 sm:p-8 rounded-2xl border border-slate-100 space-y-8 shadow-sm flex flex-col justify-between">
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <h5 className="font-sans font-bold text-[#0F2C59] text-xl sm:text-2xl leading-tight tracking-tight">
+                        효과 및 기전
+                      </h5>
+                      <div className="w-10 h-1 bg-[#0F2C59] rounded-full" />
+                    </div>
+
+                    <div className="space-y-6 divide-y divide-slate-200">
+                      {/* 기전 1 */}
+                      <div className="space-y-2 pb-6">
+                        <h6 className="font-sans font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[#0F2C59]" />
+                          위산으로 인한 성분파괴를 최소화
+                        </h6>
+                        <p className="font-sans text-xs sm:text-sm text-slate-600 leading-relaxed pl-4">
+                          아무리 뛰어난 성분도 위산에 파괴되면 의미가 없습니다. 수원단은 철저하게 계산된 장용성 캡슐을 적용했습니다. 장에 도달해 녹는 순간, 캡슐 내부에 담긴 핵심성분과 효소가 반응하여, 강력한 항염·항산화 대사체인 [D성분]으로 폭발적으로 전환됩니다. 성분의 손실 없이 흡수율을 극한으로 끌어올린 첨단 설계입니다.
+                        </p>
+                      </div>
+
+                      {/* 기전 2 */}
+                      <div className="space-y-2 pt-6 pb-6">
+                        <h6 className="font-sans font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[#0F2C59]" />
+                          발암 물질과 독소의 근본적 배출 (Phase II 해독 효소 활성화)
+                        </h6>
+                        <p className="font-sans text-xs sm:text-sm text-slate-600 leading-relaxed pl-4">
+                          진정한 해독은 간과 세포에서 독소를 수용성으로 바꿔 몸 밖으로 배출하는 과정입니다. 장에서 합성된 [D성분]은 세포 내 해독의 마스터 스위치인 Nrf2 경로를 강력하게 자극합니다. 이를 통해 체내에 축적된 유해 물질과 활성산소를 스스로 중화하고 배출하는 전신 정화 시스템을 가동합니다.
+                        </p>
+                      </div>
+
+                      {/* 기전 3 */}
+                      <div className="space-y-2 pt-6">
+                        <h6 className="font-sans font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[#0F2C59]" />
+                          비정상 세포 정화 및 강력한 전신 항산화 네트워크 활성화
+                        </h6>
+                        <p className="font-sans text-xs sm:text-sm text-slate-600 leading-relaxed pl-4">
+                          염증이 만성화되면 세포는 DNA 손상을 입고 비정상적인 변이를 일으킬 수 있습니다. 수원단의 타겟 대사체 [D성분]은 이러한 손상된 비정상 세포의 자연스러운 사멸(Apoptosis)을 유도하여 세포 생태계를 깨끗하게 유지합니다. 동시에 전신에 걸친 촘촘한 항산화·항염 네트워크를 형성하여 노화와 만성 질환의 연결 고리를 끊어냅니다.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 우측: 수원단 제품 이미지 */}
+                <div className="bg-slate-50/60 rounded-2xl p-6 sm:p-8 border border-slate-100 flex items-center justify-center shadow-sm">
+                  <div className="w-full flex items-center justify-center">
+                    <img 
+                      src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EC%97%90%EC%84%BC%EC%85%9C%20%EC%B2%98%EB%B0%A91_%EC%88%98%EC%9B%90%EB%8B%A8.png?alt=media&token=9617779b-d2e3-4f90-b089-26c3fd436d1a" 
+                      alt="수원단 에센셜 처방 제품" 
+                      className="w-[95%] max-w-full h-auto rounded-lg object-contain hover:scale-[1.01] transition-transform duration-300 mix-blend-multiply contrast-[1.08] brightness-[1.08]"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* Suseung-hwagang Efficacy Analysis Section for Detox */}
+        {activeSubTab === "detox" && (
+          <div className="mt-16 pt-16 border-t border-slate-100 animate-fadeIn">
+            <div className="w-full space-y-10 text-left">
+              
+              {/* 헤더 */}
+              <div className="space-y-3 text-left">
+                <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
+                  Cell renewal <span className="text-slate-500 font-normal text-lg sm:text-xl">셀리뉴얼</span>
+                </h4>
+                <p className="text-xs sm:text-sm font-sans text-slate-500 leading-relaxed">
+                  세포의 시간을 되돌리는 생물학적 안티에이징 포뮬러
+                </p>
+                <div className="w-12 h-1 bg-[#0F2C59]" />
+              </div>
+
+              {/* 기전 및 효과 레이아웃 (알레르기와 100% 대칭) */}
+              <div className="grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr] gap-8 pt-4 items-stretch text-left">
+                {/* 왼쪽: 효과 및 기전 텍스트 카드들 */}
+                <div className="bg-slate-50/80 p-6 sm:p-8 rounded-2xl border border-slate-100 space-y-8 shadow-sm flex flex-col justify-between">
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <h5 className="font-sans font-bold text-[#0F2C59] text-xl sm:text-2xl leading-tight tracking-tight">
+                        효과 및 기전
+                      </h5>
+                      <div className="w-10 h-1 bg-[#0F2C59] rounded-full" />
+                    </div>
+
+                    <div className="space-y-6 divide-y divide-slate-200">
+                      {/* 기전 1 */}
+                      <div className="space-y-2 pb-6">
+                        <h6 className="font-sans font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[#0F2C59]" />
+                          생물학적 세포 시계의 복원 (텔로머레이즈 활성화)
+                        </h6>
+                        <p className="font-sans text-xs sm:text-sm text-slate-600 leading-relaxed pl-4">
+                          염색체 끝단에서 DNA를 보호하는 '텔로미어'는 세포가 분열할 때마다 짧아지며 노화를 유발합니다. 본원의 독자적인 특수추출 [복합물E]는 텔로미어의 길이를 연장하고 보호하는 효소인 텔로머레이즈를 직접적으로 활성화하여, 세포의 수명 한계를 연장하고 근본적인 세포 재생력을 극대화합니다.
+                        </p>
+                      </div>
+
+                      {/* 기전 2 */}
+                      <div className="space-y-2 pt-6 pb-6">
+                        <h6 className="font-sans font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[#0F2C59]" />
+                          장수 유전자 및 대사 스위치 ON (SIRT1 & AMPK 타겟팅)
+                        </h6>
+                        <p className="font-sans text-xs sm:text-sm text-slate-600 leading-relaxed pl-4">
+                          젊고 활력 있는 신체를 유지하기 위해서는 세포 내 에너지 대사가 필수적입니다. 본 포뮬러에 배합된 [핵심 활성성분 F 및 G]는 노화 방지와 수명 연장의 핵심 열쇠로 불리는 SIRT1(장수 유전자)의 발현을 촉진합니다. 이와 동시에 세포의 에너지 센서인 AMPK 경로를 강력하게 활성화하여, 축적된 노폐물을 청소하고 전신 대사 효율을 20대 수준으로 끌어올립니다.
+                        </p>
+                      </div>
+
+                      {/* 기전 3 */}
+                      <div className="space-y-2 pt-6">
+                        <h6 className="font-sans font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[#0F2C59]" />
+                          세포 산화 및 녹숨 방지 (초강력 항산화 네트워크)
+                        </h6>
+                        <p className="font-sans text-xs sm:text-sm text-slate-600 leading-relaxed pl-4">
+                          활성산소(ROS)는 세포막과 DNA를 공격하여 신체를 병들고 늙게 만드는 주범입니다. [고순도 항산화 복합물 H]가 전신을 순환하며 강력한 항산화 네트워크를 구축, 외부 스트레스와 노화로 인한 세포의 '녹숨(Oxidative stress)'을 빈틈없이 방어합니다.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 우측: 셀리뉴얼 제품 패키지 이미지 */}
+                <div className="bg-slate-50/60 rounded-2xl p-6 sm:p-8 border border-slate-100 flex items-center justify-center shadow-sm">
+                  <div className="w-full flex items-center justify-center">
+                    <img 
+                      src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EC%97%90%EC%84%BC%EC%85%9C%20%EC%B2%98%EB%B0%A93_%EC%A2%85%ED%95%A9%EB%AA%A8%EC%9D%8C.png?alt=media&token=6996a5f6-a2fd-4e77-b6ad-33e58d6bfdd0" 
+                      alt="셀리뉴얼 약제 패키지" 
+                      className="w-[95%] max-w-full h-auto rounded-lg object-contain hover:scale-[1.01] transition-transform duration-300 mix-blend-multiply contrast-[1.08] brightness-[1.08]"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

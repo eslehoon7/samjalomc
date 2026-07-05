@@ -57,8 +57,8 @@ export default function SubLocation() {
   const markerRef = useRef<L.Marker | null>(null);
 
   const branchCoords: Record<string, [number, number]> = {
-    nowon: [37.6543, 127.0609], // 노원역 5번출구 우리은행 건물 7층
-    guri: [37.5880, 127.1376]   // 경기도 구리시 수택동 873-8
+    nowon: [37.6542263, 127.0617322], // 노원역 5번출구 우리은행 건물 7층 (정확한 위치)
+    guri: [37.5869775, 127.1381992]   // 경기도 구리시 수택동 873-8 (정확한 위치)
   };
 
   useEffect(() => {

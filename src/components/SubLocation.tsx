@@ -12,7 +12,7 @@ const defaultItems = [
     title: "아늑하고 정갈한 대기 공간",
     desc: "환우분들이 긴장을 풀고 편안한 기흐름을 찾으실 수 있도록 엄선된 무독 친환경 목조 자재와 정밀 공기 조화 설비를 도입해 설계한 삼잘 시그니처 대기 라운지입니다.",
     image: "/images/clinic_interior_modern_1780495390125.png",
-    branch: "both",
+    branch: "nowon",
     createdAt: "2026-01-01T00:00:00.000Z"
   },
   {
@@ -22,7 +22,7 @@ const defaultItems = [
     title: "1인 집중 치료실 (Sterile Room)",
     desc: "오직 환자 한 분만을 위한 아늑하고 멸균 처리된 치료 환경입니다. 심부 안정화 대관절 침법 및 심부 온열 요법에 한결 깊이 스며들 수 있도록 정밀하게 원내 고유 설계했습니다.",
     image: "/images/clinic_interior_1779805270752.png",
-    branch: "both",
+    branch: "guri",
     createdAt: "2026-01-02T00:00:00.000Z"
   },
   {
@@ -32,7 +32,7 @@ const defaultItems = [
     title: "체질맥진 정밀 진단실",
     desc: "환우의 체외적 증상 이면의 자생력 상태 및 비위 맥박을 정량 분석하고 따뜻한 시선으로 마주하는 개별 일대일 맞춤 카운셀링 공간입니다.",
     image: "/images/samjal_crew_professional_1780495405627.png",
-    branch: "both",
+    branch: "nowon",
     createdAt: "2026-01-03T00:00:00.000Z"
   },
   {
@@ -42,7 +42,7 @@ const defaultItems = [
     title: "특허 안심 청정 조제관",
     desc: "약제 보관 및 첨단 추출 제약 설비를 안전하고 까다롭게 구비하였습니다. 식약처 인증 최상위 등급 한약재들이 어떠한 성분 소실 없이 가공되는 핵심 기지입니다.",
     image: "/images/hygienic_premium_hanbang_herbal_1780497683155.png",
-    branch: "both",
+    branch: "guri",
     createdAt: "2026-01-04T00:00:00.000Z"
   }
 ];
@@ -275,7 +275,23 @@ export default function SubLocation() {
 
   // Filter gallery items relative to active branch selection
   const filteredGalleryItems = galleryItems.filter((item: any) => {
-    if (!item.branch || item.branch === "both") return true;
+    // 공통으로 들어간 사진은 다 지우기 위해, branch가 "both"이거나 명시되지 않은 공통 이미지는 제외하고 각 지점 고유 사진만 보여줍니다.
+    if (!item.branch || item.branch === "both") return false;
+    
+    // 구리점에서는 1인 집중 치료실과 특허 안심 청정 조제관 항목을 제외합니다.
+    if (activeBranch === "guri") {
+      if (item.title && (item.title.includes("1인 집중 치료실") || item.title.includes("특허 안심 청정 조제관"))) {
+        return false;
+      }
+    }
+
+    // 노원점에서는 아늑하고 정갈한 대기공간과 체질맥진 정밀 진단실 항목을 제외합니다.
+    if (activeBranch === "nowon") {
+      if (item.title && (item.title.includes("아늑하고 정갈한 대기 공간") || item.title.includes("체질맥진 정밀 진단실"))) {
+        return false;
+      }
+    }
+    
     return item.branch === activeBranch;
   });
 

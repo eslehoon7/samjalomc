@@ -106,8 +106,7 @@ export default function Header({ activeTab, setActiveTab, openReservationModal }
           <div className="hidden md:flex items-center">
             <button
               onClick={() => {
-                setActiveTab("reservation");
-                window.scrollTo({ top: 0, behavior: "smooth" });
+                window.open("https://naver.me/xtNNu5e6", "_blank", "noopener,noreferrer");
               }}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-full border-2 transition-all duration-300 text-sm font-sans tracking-wider cursor-pointer ${
                 activeTab === "reservation"
@@ -169,9 +168,8 @@ export default function Header({ activeTab, setActiveTab, openReservationModal }
               <div className="pt-4">
                 <button
                   onClick={() => {
-                    setActiveTab("reservation");
                     setIsOpen(false);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    window.open("https://naver.me/xtNNu5e6", "_blank", "noopener,noreferrer");
                   }}
                   className="w-full flex items-center justify-center gap-2 bg-[#0F2C59] text-white py-3 rounded-lg text-sm font-sans tracking-wider shadow cursor-pointer"
                 >

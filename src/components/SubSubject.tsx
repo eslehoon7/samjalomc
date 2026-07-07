@@ -460,14 +460,16 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
             <div className="w-full space-y-10 text-left">
               
               {/* 헤더 */}
-              <div className="space-y-3 text-left">
+              <div className="space-y-3 text-center max-w-3xl mx-auto">
+                <span className="text-sm sm:text-base font-sans text-[#0F2C59] uppercase tracking-widest font-bold block mb-1">
+                  관련 에센셜 처방 소개
+                </span>
                 <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
                   Feather step <span className="text-slate-500 font-normal text-lg sm:text-xl">페더스텝</span>
                 </h4>
                 <p className="text-xs sm:text-sm font-sans text-slate-500 leading-relaxed">
                   증상 호전과 함께 관절연골을 동시에 보호하는 관절내 염증 치료제
                 </p>
-                <div className="w-12 h-1 bg-[#0F2C59]" />
                 <p className="text-sm sm:text-base font-sans text-slate-600 leading-relaxed">
                   다수의 SCI급 논문과 메타분석 및 체계적 문헌고찰을 통해 검증된 원료성분의 관절염 치료효과
                 </p>
@@ -528,14 +530,16 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
             <div className="w-full space-y-10 text-left">
               
               {/* 헤더 */}
-              <div className="space-y-3 text-left">
+              <div className="space-y-3 text-center max-w-3xl mx-auto">
+                <span className="text-sm sm:text-base font-sans text-[#0F2C59] uppercase tracking-widest font-bold block mb-1">
+                  관련 에센셜 처방 소개
+                </span>
                 <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
                   Goyo <span className="text-slate-500 font-normal text-lg sm:text-xl">고요</span>
                 </h4>
                 <p className="text-xs sm:text-sm font-sans text-slate-500 leading-relaxed">
                   자연스러운 입면을 유도하는 수면 보조제
                 </p>
-                <div className="w-12 h-1 bg-[#0F2C59]" />
               </div>
 
               {/* 기전 및 효과 레이아웃 */}
@@ -612,14 +616,16 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
             <div className="w-full space-y-10 text-left">
               
               {/* 헤더 */}
-              <div className="space-y-3 text-left">
+              <div className="space-y-3 text-center max-w-3xl mx-auto">
+                <span className="text-sm sm:text-base font-sans text-[#0F2C59] uppercase tracking-widest font-bold block mb-1">
+                  관련 에센셜 처방 소개
+                </span>
                 <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
                   Allergy-control <span className="text-slate-500 font-normal text-lg sm:text-xl">알레르기컨트롤</span>
                 </h4>
                 <p className="text-xs sm:text-sm font-sans text-slate-500 leading-relaxed">
                   복합기전을 통해 알레르기를 종합적으로 억제하는 알레르기 치료제
                 </p>
-                <div className="w-12 h-1 bg-[#0F2C59]" />
               </div>
 
               {/* 기전 및 효과 레이아웃 (고요와 100% 대칭) */}
@@ -682,14 +688,16 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
             <div className="w-full space-y-10 text-left">
               
               {/* 헤더 */}
-              <div className="space-y-3 text-left">
+              <div className="space-y-3 text-center max-w-3xl mx-auto">
+                <span className="text-sm sm:text-base font-sans text-[#0F2C59] uppercase tracking-widest font-bold block mb-1">
+                  관련 에센셜 처방 소개
+                </span>
                 <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
                   수원단(粹源丹) 캡슐
                 </h4>
                 <p className="text-xs sm:text-sm font-sans text-slate-500 leading-relaxed">
                   근원부터 정화하는 세포해독제
                 </p>
-                <div className="w-12 h-1 bg-[#0F2C59]" />
               </div>
 
               {/* 기전 및 효과 레이아웃 (알레르기와 100% 대칭) */}
@@ -764,14 +772,16 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
             <div className="w-full space-y-10 text-left">
               
               {/* 헤더 */}
-              <div className="space-y-3 text-left">
+              <div className="space-y-3 text-center max-w-3xl mx-auto">
+                <span className="text-sm sm:text-base font-sans text-[#0F2C59] uppercase tracking-widest font-bold block mb-1">
+                  관련 에센셜 처방 소개
+                </span>
                 <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
                   Cell renewal <span className="text-slate-500 font-normal text-lg sm:text-xl">셀리뉴얼</span>
                 </h4>
                 <p className="text-xs sm:text-sm font-sans text-slate-500 leading-relaxed">
                   세포의 시간을 되돌리는 생물학적 안티에이징 포뮬러
                 </p>
-                <div className="w-12 h-1 bg-[#0F2C59]" />
               </div>
 
               {/* 기전 및 효과 레이아웃 (알레르기와 100% 대칭) */}

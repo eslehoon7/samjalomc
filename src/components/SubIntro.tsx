@@ -337,75 +337,57 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
               <div className="pt-16 border-t border-slate-100 space-y-10">
                 <div className="text-center space-y-3">
                   <span className="text-xs font-sans text-[#0F2C59] uppercase tracking-widest font-bold block">
-                    Samjal Essential Lineup
+                    SJ ESSENTIAL LINEUP
                   </span>
                   <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold">
-                    삼잘에센셜 라인업
+                    에센셜 처방 한눈에 살펴보기
                   </h4>
                   <div className="w-12 h-1 bg-[#0F2C59] mx-auto" />
                   <p className="text-sm font-sans text-slate-500 max-w-2xl mx-auto">
-                    에센셜 라인 한눈에 살펴보기
+                    자세한 설명은 진료과목 페이지에서 살펴보실 수 있습니다.
                   </p>
                 </div>
 
 
 
                 <div className="max-w-4xl mx-auto space-y-12 md:pb-16 md:pt-8">
-                  {/* Row 1: 01 & 02 */}
+                  {/* Row 1: 01 */}
                   <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 py-4">
-                    {/* Left Text Column */}
-                    <div className="flex-1 w-full flex flex-col justify-center text-left space-y-6">
-                      {/* 01 */}
-                      <div className="space-y-1">
-                        <div className="text-sm font-sans font-medium text-slate-400">01.</div>
-                        <h5 className="text-xl sm:text-2xl font-serif font-bold text-slate-800">
-                          Feather step <span className="font-sans text-lg text-slate-600 font-medium ml-1">페더스텝</span>
-                        </h5>
-                        <p className="text-sm font-sans text-slate-500 italic">
-                          &ldquo;깃털이 달린 듯 가벼운 발걸음을 위해&rdquo;
-                        </p>
-                        <p className="text-base sm:text-lg font-sans text-slate-700 font-bold pt-1">
-                          관절내 염증 치료제
-                        </p>
-                      </div>
-
-                      {/* Divider between 01 and 02 */}
-                      <div className="w-full h-[1px] bg-slate-200" />
-
-                      {/* 02 */}
-                      <div className="space-y-1">
-                        <div className="text-sm font-sans font-medium text-slate-400">02.</div>
-                        <h5 className="text-xl sm:text-2xl font-serif font-bold text-slate-800">
-                          Allergy-control <span className="font-sans text-lg text-slate-600 font-medium ml-1">알레르기컨트롤</span>
-                        </h5>
-                        <p className="text-sm font-sans text-slate-500 italic">
-                          &ldquo;급성과 만성을 함께 다스리는 종합 알레르기 솔루션&rdquo;
-                        </p>
-                        <p className="text-base sm:text-lg font-sans text-slate-700 font-bold pt-1">
-                          비염/결막염/두드러기, 아토피, 천식 치료제
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Right Image Column */}
-                    <div className="w-80 h-48 sm:w-96 sm:h-56 md:w-[400px] md:h-[240px] overflow-hidden shrink-0 relative flex items-center justify-center">
+                    {/* Left Image Column */}
+                    <div className="w-80 h-64 sm:w-96 sm:h-72 md:w-[400px] md:h-[320px] overflow-hidden shrink-0 relative flex items-center justify-center">
                       <CleanLoadImage
-                        src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EC%95%8C%EB%A0%88%EB%A5%B4%EA%B8%B0%EC%BB%A8%ED%8A%B8%EB%A1%A4.png?alt=media&token=23512c5a-ae73-4f3f-97c4-aca2f2b654fe"
-                        alt="삼잘 에센셜 페더스텝 & 알레르기컨트롤"
+                        src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EC%B2%A9%EC%95%BD.png?alt=media&token=f8e063dc-3c32-4729-85b3-5db480e33434"
+                        alt="삼잘 에센셜 페더스텝"
                         className="w-full h-full object-contain transition-transform duration-500 hover:scale-105"
                       />
+                    </div>
+
+                    {/* Right Text Column */}
+                    <div className="flex-1 w-full flex flex-col justify-center text-left space-y-6">
+                      {/* 01 */}
+                      <div className="space-y-3">
+                        <h5 className="text-xl sm:text-2xl font-serif font-bold text-slate-800">
+                          액상형 치료제 4종
+                        </h5>
+                        <p className="text-base sm:text-lg font-sans text-slate-600 leading-relaxed">
+                          관절내 염증 : 페더스텝 <br />
+                          알레르기 : 알레르기 컨트롤 <br />
+                          불면증 : 고요 <br />
+                          항노화/해독 : 셀리뉴얼 로 구성
+                        </p>
+                      </div>
                     </div>
                   </div>
 
                   {/* Outer Divider 1 */}
                   <div className="w-full h-[1px] bg-slate-200" />
 
-                  {/* Row 2: 03 */}
+                  {/* Row 2: 02 */}
                   <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 py-4">
                     {/* Left Image Column */}
-                    <div className="w-80 h-48 sm:w-96 sm:h-56 md:w-[400px] md:h-[240px] overflow-hidden shrink-0 relative flex items-center justify-center">
+                    <div className="w-80 h-64 sm:w-96 sm:h-72 md:w-[400px] md:h-[320px] overflow-hidden shrink-0 relative flex items-center justify-center">
                       <CleanLoadImage
-                        src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EC%88%98%EC%9B%90%EB%8B%A8%EC%BA%A1%EC%8A%90.png?alt=media&token=59ca6945-21d1-45aa-aaa6-d86efe492338"
+                        src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EC%88%98%EC%9B%90%EB%8B%A8%20%EC%97%B0%EC%B6%9C%EC%BB%B7.jpg?alt=media&token=d1658f91-52dd-48fd-8f44-cc8e9077ecdf"
                         alt="수원단 캡슐"
                         className="w-full h-full object-contain transition-transform duration-500 hover:scale-105"
                       />
@@ -413,77 +395,26 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
 
                     {/* Right Text Column */}
                     <div className="flex-1 w-full flex flex-col justify-center text-left space-y-1">
-                      <div className="text-sm font-sans font-medium text-slate-400">03.</div>
                       <h5 className="text-xl sm:text-2xl font-serif font-bold text-slate-800">
                         수원단(粹源丹) 캡슐
                       </h5>
-                      <p className="text-sm font-sans text-slate-500 italic">
-                        &ldquo;근원부터 깨끗하게 정화하는 해독항산화제&rdquo;
-                      </p>
-                      <p className="text-base sm:text-lg font-sans text-slate-700 font-bold pt-1">
+                      <p className="text-base sm:text-lg font-sans text-slate-700 font-normal pt-1">
                         해독/암 재발 및 전이관리/항산화 포뮬러
                       </p>
                     </div>
                   </div>
 
-                  {/* Outer Divider 2 */}
-                  <div className="w-full h-[1px] bg-slate-200" />
 
-                  {/* Row 3: 04 & 05 */}
-                  <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 py-4">
-                    {/* Left Text Column */}
-                    <div className="flex-1 w-full flex flex-col justify-center text-left space-y-6">
-                      {/* 04 */}
-                      <div className="space-y-1">
-                        <div className="text-sm font-sans font-medium text-slate-400">04.</div>
-                        <h5 className="text-xl sm:text-2xl font-serif font-bold text-slate-800">
-                          Cell renewal <span className="font-sans text-lg text-slate-600 font-medium ml-1">셀리뉴얼</span>
-                        </h5>
-                        <p className="text-sm font-sans text-slate-500 italic">
-                          &ldquo;세포의 노화를 늦추는 신개념 항노화 포뮬러&rdquo;
-                        </p>
-                        <p className="text-base sm:text-lg font-sans text-slate-700 font-bold pt-1">
-                          신개념 항노화/해독 치료제
-                        </p>
-                      </div>
-
-                      {/* Divider between 04 and 05 */}
-                      <div className="w-full h-[1px] bg-slate-200" />
-
-                      {/* 05 */}
-                      <div className="space-y-1">
-                        <div className="text-sm font-sans font-medium text-slate-400">05.</div>
-                        <h5 className="text-xl sm:text-2xl font-serif font-bold text-slate-800">
-                          Goyo <span className="font-sans text-lg text-slate-600 font-medium ml-1">고요</span>
-                        </h5>
-                        <p className="text-sm font-sans text-slate-500 italic">
-                          &ldquo;생리적인 수면기전을 유도하는 불면증 솔루션&rdquo;
-                        </p>
-                        <p className="text-base sm:text-lg font-sans text-slate-700 font-bold pt-1">
-                          천연물 수면 보조제
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Right Image Column */}
-                    <div className="w-80 h-48 sm:w-96 sm:h-56 md:w-[400px] md:h-[240px] overflow-hidden shrink-0 relative flex items-center justify-center">
-                      <CleanLoadImage
-                        src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%EC%95%8C%EB%A0%88%EB%A5%B4%EA%B8%B0%EC%BB%A8%ED%8A%B8%EB%A1%A4.png?alt=media&token=23512c5a-ae73-4f3f-97c4-aca2f2b654fe"
-                        alt="삼잘 에센셜 셀리뉴얼 & 고요"
-                        className="w-full h-full object-contain transition-transform duration-500 hover:scale-105"
-                      />
-                    </div>
-                  </div>
 
                   {/* Outer Divider 3 */}
                   <div className="w-full h-[1px] bg-slate-200" />
 
-                  {/* Row 4: 06 */}
+                  {/* Row 4: 05 */}
                   <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 py-4">
                     {/* Left Image Column */}
-                    <div className="w-80 h-48 sm:w-96 sm:h-56 md:w-[400px] md:h-[240px] overflow-hidden shrink-0 relative flex items-center justify-center">
+                    <div className="w-80 h-64 sm:w-96 sm:h-72 md:w-[400px] md:h-[320px] overflow-hidden shrink-0 relative flex items-center justify-center">
                       <CleanLoadImage
-                        src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%ED%94%84%EB%9D%BC%EC%9D%B4%EB%A8%B8%EC%98%A4%EC%9D%BC.png?alt=media&token=6b76c2ca-385e-463f-90b7-03316fb731f7"
+                        src="https://firebasestorage.googleapis.com/v0/b/samjal-oriental-clinic.firebasestorage.app/o/image%2F%ED%94%84%EB%9D%BC%EC%9D%B4%EB%A8%B8%EC%98%A4%EC%9D%BC%20%EC%97%B0%EC%B6%9C%EC%BB%B71.jpg?alt=media&token=c7b9896e-6c63-476e-938b-83d41db46ffb"
                         alt="프라이머 오일"
                         className="w-full h-full object-contain transition-transform duration-500 hover:scale-105"
                       />
@@ -491,15 +422,11 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
 
                     {/* Right Text Column */}
                     <div className="flex-1 w-full flex flex-col justify-center text-left space-y-1">
-                      <div className="text-sm font-sans font-medium text-slate-400">06.</div>
                       <h5 className="text-xl sm:text-2xl font-serif font-bold text-slate-800">
-                        Primer oil <span className="font-sans text-lg text-slate-600 font-medium ml-1">프라이머오일</span>
+                        프라이머 오일
                       </h5>
-                      <p className="text-sm font-sans text-slate-500 italic">
-                        &ldquo;약의 효과를 증폭하고 염증을 억제하는 오일 형태의 치료제&rdquo;
-                      </p>
-                      <p className="text-base sm:text-lg font-sans text-slate-700 font-bold pt-1">
-                        항염증 오일(5-LOX 억제를 통한 항알레르기/관절연골보호)
+                      <p className="text-base sm:text-lg font-sans text-slate-700 font-normal pt-1">
+                        알레르기 억제 / 관절보호
                       </p>
                     </div>
                   </div>

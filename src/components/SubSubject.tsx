@@ -462,7 +462,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
               {/* 헤더 */}
               <div className="space-y-3 text-center max-w-3xl mx-auto">
                 <span className="text-sm sm:text-base font-sans text-[#0F2C59] uppercase tracking-widest font-bold block mb-1">
-                  관련 에센셜 처방 소개
+                  SJ ESSENTIAL LINEUP
                 </span>
                 <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
                   Feather step <span className="text-slate-500 font-normal text-lg sm:text-xl">페더스텝</span>
@@ -532,7 +532,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
               {/* 헤더 */}
               <div className="space-y-3 text-center max-w-3xl mx-auto">
                 <span className="text-sm sm:text-base font-sans text-[#0F2C59] uppercase tracking-widest font-bold block mb-1">
-                  관련 에센셜 처방 소개
+                  SJ ESSENTIAL LINEUP
                 </span>
                 <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
                   Goyo <span className="text-slate-500 font-normal text-lg sm:text-xl">고요</span>
@@ -618,7 +618,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
               {/* 헤더 */}
               <div className="space-y-3 text-center max-w-3xl mx-auto">
                 <span className="text-sm sm:text-base font-sans text-[#0F2C59] uppercase tracking-widest font-bold block mb-1">
-                  관련 에센셜 처방 소개
+                  SJ ESSENTIAL LINEUP
                 </span>
                 <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
                   Allergy-control <span className="text-slate-500 font-normal text-lg sm:text-xl">알레르기컨트롤</span>
@@ -690,7 +690,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
               {/* 헤더 */}
               <div className="space-y-3 text-center max-w-3xl mx-auto">
                 <span className="text-sm sm:text-base font-sans text-[#0F2C59] uppercase tracking-widest font-bold block mb-1">
-                  관련 에센셜 처방 소개
+                  SJ ESSENTIAL LINEUP
                 </span>
                 <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
                   수원단(粹源丹) 캡슐
@@ -774,7 +774,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
               {/* 헤더 */}
               <div className="space-y-3 text-center max-w-3xl mx-auto">
                 <span className="text-sm sm:text-base font-sans text-[#0F2C59] uppercase tracking-widest font-bold block mb-1">
-                  관련 에센셜 처방 소개
+                  SJ ESSENTIAL LINEUP
                 </span>
                 <h4 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
                   Cell renewal <span className="text-slate-500 font-normal text-lg sm:text-xl">셀리뉴얼</span>

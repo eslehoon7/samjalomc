@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { Notice } from "../types";
 import { Eye, Clock, FileText, X } from "lucide-react";
 import { db } from "../firebase";
@@ -178,8 +179,11 @@ export default function SubNotice() {
             </div>
             <div className="divide-y divide-slate-100 border-b border-slate-200">
               {(notices || []).map((n, idx) => (
-                <div
+                <motion.div
                   key={n.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, delay: Math.min(idx * 0.05, 0.5), ease: "easeOut" }}
                   onClick={() => handleNoticeClick(n.id)}
                   className="grid grid-cols-1 sm:grid-cols-12 px-6 py-5 sm:py-6 text-slate-700 hover:bg-slate-50 transition-colors duration-300 items-center cursor-pointer group"
                 >
@@ -210,55 +214,69 @@ export default function SubNotice() {
                   <span className="col-span-2 text-center hidden sm:block font-sans text-xs text-slate-400 group-hover:text-slate-900">
                     {n.views}
                   </span>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
         )}
 
-        {selectedNotice && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fadeIn">
-            <div className="bg-white border border-slate-200 max-w-2xl w-full rounded-2xl shadow-2xl overflow-hidden animate-scaleUp">
-              <div className="bg-[#0F172A] text-slate-100 px-6 py-5 flex justify-between items-center border-b border-slate-800">
-                <span className="text-xs sm:text-sm tracking-wider font-sans text-slate-300">삼잘 메디컬 소식 공고</span>
-                <button
-                  onClick={() => setSelectedNotice(null)}
-                  className="p-1 rounded-full text-slate-400 hover:bg-white/10 cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="p-6 sm:p-8 space-y-6">
-                <div className="space-y-3 pb-4 border-b border-slate-200">
-                  <h3 className="text-xl sm:text-2xl font-sans text-[#0F172A] font-bold text-left leading-relaxed">
-                    {selectedNotice.title}
-                  </h3>
-                  <div className="flex justify-between items-center text-xs text-slate-400">
-                    <span className="flex items-center gap-1 font-sans">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      등록일: {selectedNotice.date}
-                    </span>
-                    <span className="flex items-center gap-1 font-sans">
-                      <Eye className="w-3.5 h-3.5 text-slate-400" />
-                      조회수: {selectedNotice.views}
-                    </span>
+        <AnimatePresence>
+          {selectedNotice && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: "spring", damping: 25, stiffness: 350 }}
+                className="bg-white border border-slate-200 max-w-2xl w-full rounded-2xl shadow-2xl overflow-hidden"
+              >
+                <div className="bg-[#0F172A] text-slate-100 px-6 py-5 flex justify-between items-center border-b border-slate-800">
+                  <span className="text-xs sm:text-sm tracking-wider font-sans text-slate-300">삼잘 메디컬 소식 공고</span>
+                  <button
+                    onClick={() => setSelectedNotice(null)}
+                    className="p-1 rounded-full text-slate-400 hover:bg-white/10 cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="p-6 sm:p-8 space-y-6">
+                  <div className="space-y-3 pb-4 border-b border-slate-200">
+                    <h3 className="text-xl sm:text-2xl font-sans text-[#0F172A] font-bold text-left leading-relaxed">
+                      {selectedNotice.title}
+                    </h3>
+                    <div className="flex justify-between items-center text-xs text-slate-400">
+                      <span className="flex items-center gap-1 font-sans">
+                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                        등록일: {selectedNotice.date}
+                      </span>
+                      <span className="flex items-center gap-1 font-sans">
+                        <Eye className="w-3.5 h-3.5 text-slate-400" />
+                        조회수: {selectedNotice.views}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-slate-700 font-sans text-sm sm:text-base leading-relaxed text-left whitespace-pre-wrap max-h-[300px] overflow-y-auto pr-2">
+                    {selectedNotice.content}
                   </div>
                 </div>
-                <div className="text-slate-700 font-sans text-sm sm:text-base leading-relaxed text-left whitespace-pre-wrap max-h-[300px] overflow-y-auto pr-2">
-                  {selectedNotice.content}
+                <div className="bg-slate-50 px-6 py-4 flex justify-end border-t border-slate-100">
+                  <button
+                    onClick={() => setSelectedNotice(null)}
+                    className="px-6 py-2 bg-[#0F172A] text-white hover:bg-[#0F2C59] text-xs font-sans tracking-wider rounded-lg transition-colors duration-300 cursor-pointer"
+                  >
+                    소식 닫기
+                  </button>
                 </div>
-              </div>
-              <div className="bg-slate-50 px-6 py-4 flex justify-end border-t border-slate-100">
-                <button
-                  onClick={() => setSelectedNotice(null)}
-                  className="px-6 py-2 bg-[#0F172A] text-white hover:bg-[#0F2C59] text-xs font-sans tracking-wider rounded-lg transition-colors duration-300 cursor-pointer"
-                >
-                  소식 닫기
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

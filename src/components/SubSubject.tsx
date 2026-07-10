@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { db } from "../firebase";
 import { collection, onSnapshot, doc, setDoc } from "firebase/firestore";
@@ -106,6 +107,29 @@ function ImageWithLoader({
     </div>
   );
 }
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      ease: [0.16, 1, 0.3, 1] as any
+    }
+  }
+};
 
 export default function SubSubject({ setActiveTab }: SubSubjectProps) {
   const [activeSubTab, setActiveSubTab] = useState("spine");
@@ -265,12 +289,12 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
       diseasesList: [
         "생물학적 세포 시계의 복원 (텔로머레이즈 활성화)",
         "장수 유전자 및 대사 스위치 ON (SIRT1 & AMPK 타겟팅)",
-        "세포 산화 및 녹숨 방지 (초강력 항산화 네트워크)"
+        "세포 산화 및 녹슮 방지 (초강력 항산화 네트워크)"
       ],
       benefits: [
         "생물학적 세포 시계의 복원 (텔로머레이즈 활성화)",
         "장수 유전자 및 대사 스위치 ON (SIRT1 & AMPK 타겟팅)",
-        "세포 산화 및 녹숨 방지 (초강력 항산화 네트워크)"
+        "세포 산화 및 녹슮 방지 (초강력 항산화 네트워크)"
       ],
       image: "/images/hygienic_premium_hanbang_herbal_1780497683155.png"
     }
@@ -342,10 +366,16 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         </div>
 
         {/* 탭 내용 분할 슬롯 */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
+        <motion.div
+          key={activeSubTab}
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch"
+        >
           
           {/* 왼쪽 텍스트 정보 */}
-          <div className="lg:col-span-7 flex flex-col justify-between space-y-6 text-left">
+          <motion.div variants={itemVariants} className="lg:col-span-7 flex flex-col justify-between space-y-6 text-left">
             <div className="space-y-4">
               <div className="space-y-2">
                 <h3 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
@@ -396,10 +426,10 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
                 <ArrowRight className="w-4 h-4 text-current" />
               </button>
             </div>
-          </div>
+          </motion.div>
 
           {/* 오른쪽 시각적 고품질 생성 이미지 결합부 - 2x2 밀접 그리드 배열 */}
-          <div key={activeSubTab} className="lg:col-span-5 rounded-2xl overflow-hidden flex flex-col relative justify-center animate-fadeIn">
+          <motion.div variants={itemVariants} className="lg:col-span-5 rounded-2xl overflow-hidden flex flex-col relative justify-center">
             <div className="grid grid-cols-2 gap-1.5">
               {(() => {
                 const list = subjectImages[activeSubTab] || defaultSubjectImages[activeSubTab];
@@ -450,13 +480,18 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
                 });
               })()}
             </div>
-          </div>
+          </motion.div>
 
-        </div>
+        </motion.div>
 
         {/* Feather Step Efficacy Analysis Section */}
         {activeSubTab === "spine" && (
-          <div className="mt-16 pt-16 border-t border-slate-100 animate-fadeIn">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-16 pt-16 border-t border-slate-100"
+          >
             <div className="w-full space-y-10 text-left">
               
               {/* 헤더 */}
@@ -521,12 +556,17 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
               </div>
 
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Goyo Efficacy Analysis Section for Internal Medicine */}
         {activeSubTab === "internal" && (
-          <div className="mt-16 pt-16 border-t border-slate-100 animate-fadeIn">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-16 pt-16 border-t border-slate-100"
+          >
             <div className="w-full space-y-10 text-left">
               
               {/* 헤더 */}
@@ -607,12 +647,17 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
               </div>
 
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Allergy-control Efficacy Analysis Section for Allergy */}
         {activeSubTab === "allergy" && (
-          <div className="mt-16 pt-16 border-t border-slate-100 animate-fadeIn">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-16 pt-16 border-t border-slate-100"
+          >
             <div className="w-full space-y-10 text-left">
               
               {/* 헤더 */}
@@ -679,12 +724,17 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
               </div>
 
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Wisu-bae-annyeong Efficacy Analysis Section for Cancer */}
         {activeSubTab === "cancer" && (
-          <div className="mt-16 pt-16 border-t border-slate-100 animate-fadeIn">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-16 pt-16 border-t border-slate-100"
+          >
             <div className="w-full space-y-10 text-left">
               
               {/* 헤더 */}
@@ -763,12 +813,17 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
               </div>
 
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Suseung-hwagang Efficacy Analysis Section for Detox */}
         {activeSubTab === "detox" && (
-          <div className="mt-16 pt-16 border-t border-slate-100 animate-fadeIn">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-16 pt-16 border-t border-slate-100"
+          >
             <div className="w-full space-y-10 text-left">
               
               {/* 헤더 */}
@@ -823,10 +878,10 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
                       <div className="space-y-2 pt-6">
                         <h6 className="font-sans font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-[#0F2C59]" />
-                          세포 산화 및 녹숨 방지 (초강력 항산화 네트워크)
+                          세포 산화 및 녹슮 방지 (초강력 항산화 네트워크)
                         </h6>
                         <p className="font-sans text-xs sm:text-sm text-slate-600 leading-relaxed pl-4">
-                          활성산소(ROS)는 세포막과 DNA를 공격하여 신체를 병들고 늙게 만드는 주범입니다. [고순도 항산화 복합물 H]가 전신을 순환하며 강력한 항산화 네트워크를 구축, 외부 스트레스와 노화로 인한 세포의 '녹숨(Oxidative stress)'을 빈틈없이 방어합니다.
+                          활성산소(ROS)는 세포막과 DNA를 공격하여 신체를 병들고 늙게 만드는 주범입니다. [고순도 항산화 복합물 H]가 전신을 순환하며 강력한 항산화 네트워크를 구축, 외부 스트레스와 노화로 인한 세포의 '녹슮(Oxidative stress)'을 빈틈없이 방어합니다.
                         </p>
                       </div>
                     </div>
@@ -847,7 +902,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
               </div>
 
             </div>
-          </div>
+          </motion.div>
         )}
 
       </div>

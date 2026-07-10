@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { db } from "../firebase";
 import { collection, onSnapshot } from "firebase/firestore";
 import { Download } from "lucide-react";
@@ -255,7 +256,12 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
           
           {/* 1. 진료철학 */}
           {subTab === "philosophy" && (
-            <div className="space-y-12 animate-fadeIn">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-12"
+            >
               <div className="max-w-3xl mx-auto text-center space-y-6">
                 <span className="text-xs font-sans text-[#0F2C59] uppercase tracking-widest block font-semibold">
                   Our Vision & Philosophy
@@ -276,12 +282,17 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
               </div>
 
 
-            </div>
+            </motion.div>
           )}
 
           {/* 2. 고유치료법 */}
           {subTab === "treatments" && (
-            <div className="space-y-12 animate-fadeIn text-left">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-12 text-left"
+            >
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 <div className="lg:col-span-7 space-y-6">
                   <span className="text-xs font-sans text-[#0F2C59] uppercase tracking-widest block font-semibold">
@@ -432,12 +443,17 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* 3. 의료진소개 */}
           {subTab === "doctors" && (
-            <div className="space-y-12 animate-fadeIn">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-12"
+            >
               {/* Research & Clinical Partners 연구자문 섹션 */}
               <div className="space-y-10 text-left">
                 <div className="text-center space-y-6">
@@ -554,12 +570,17 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
                   </a>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* 4. 대외활동 */}
           {subTab === "activities" && (
-            <div className="space-y-16 animate-fadeIn text-left">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-16 text-left"
+            >
               <div className="text-center space-y-6">
                 <span className="text-xs font-sans text-[#0F2C59] uppercase tracking-widest block font-bold">
                   National Team Doctor Activities
@@ -669,7 +690,7 @@ export default function SubIntro({ subTab, setSubTab, setActiveTab }: SubIntroPr
 
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
         </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import MainVisual from "./components/MainVisual";
@@ -68,47 +68,99 @@ export default function App() {
       />
 
       {/* 본문 동적 라우팅 스폿 */}
-      <main className="flex-1">
-        {activeTab === "home" ? (
-          <div className="animate-fadeIn">
-            
-            {/* 1. 홈 캐러셀 슬라이더 */}
-            <MainVisual 
-              setActiveTab={setActiveTab} 
-              setIntroSubTab={setIntroSubTab} 
-            />
+      <main className="flex-1 overflow-hidden">
+        <AnimatePresence mode="wait">
+          {activeTab === "home" ? (
+            <motion.div
+              key="home"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {/* 1. 홈 캐러셀 슬라이더 */}
+              <MainVisual 
+                setActiveTab={setActiveTab} 
+                setIntroSubTab={setIntroSubTab} 
+              />
 
-            {/* 2. 삼잘 수면/식이/배변 3대 철학 스토리 (사용자 시안 정밀 매치) */}
-            <SamjalValue />
+              {/* 2. 삼잘 수면/식이/배변 3대 철학 스토리 (사용자 시안 정밀 매치) */}
+              <SamjalValue />
 
-            {/* 3. 명품 고유치료 3성단 카드 (사용자 시안 침/한약/의료진 매치) */}
-            <SignatureTreatment 
-              setActiveTab={setActiveTab} 
-              setIntroSubTab={setIntroSubTab} 
-            />
-
-
-
-          </div>
-        ) : activeTab === "intro" ? (
-          <SubIntro 
-            subTab={introSubTab} 
-            setSubTab={setIntroSubTab} 
-            setActiveTab={setActiveTab} 
-          />
-        ) : activeTab === "subject" ? (
-          <SubSubject 
-            setActiveTab={setActiveTab} 
-          />
-        ) : activeTab === "location" ? (
-          <SubLocation />
-        ) : activeTab === "notice" ? (
-          <SubNotice />
-        ) : activeTab === "reservation" ? (
-          <SubReservation />
-        ) : activeTab === "admin" ? (
-          <SubAdmin />
-        ) : null}
+              {/* 3. 명품 고유치료 3성단 카드 (사용자 시안 침/한약/의료진 매치) */}
+              <SignatureTreatment 
+                setActiveTab={setActiveTab} 
+                setIntroSubTab={setIntroSubTab} 
+              />
+            </motion.div>
+          ) : activeTab === "intro" ? (
+            <motion.div
+              key="intro"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <SubIntro 
+                subTab={introSubTab} 
+                setSubTab={setIntroSubTab} 
+                setActiveTab={setActiveTab} 
+              />
+            </motion.div>
+          ) : activeTab === "subject" ? (
+            <motion.div
+              key="subject"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <SubSubject 
+                setActiveTab={setActiveTab} 
+              />
+            </motion.div>
+          ) : activeTab === "location" ? (
+            <motion.div
+              key="location"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <SubLocation />
+            </motion.div>
+          ) : activeTab === "notice" ? (
+            <motion.div
+              key="notice"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <SubNotice />
+            </motion.div>
+          ) : activeTab === "reservation" ? (
+            <motion.div
+              key="reservation"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <SubReservation />
+            </motion.div>
+          ) : activeTab === "admin" ? (
+            <motion.div
+              key="admin"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <SubAdmin />
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       </main>
 
       {/* 하단 노원/구리 지점주소 및 통합 풋터 */}

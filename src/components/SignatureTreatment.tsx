@@ -106,6 +106,8 @@ export default function SignatureTreatment({ setActiveTab, setIntroSubTab }: Sig
               <div className="absolute inset-0 bg-slate-950/75 group-hover:bg-transparent transition-colors duration-700 z-10" />
               {/* 블루/네이비 피 필터 조합 - 마우스 안 올렸을 때 파랗게 보이게 하고 호버시 사라짐 */}
               <div className="absolute inset-0 bg-[#0F2C59]/15 mix-blend-multiply group-hover:bg-transparent transition-all duration-700 z-10" />
+              {/* 호버 시 하얀색 텍스트 가독성을 위한 상향 검정 그라데이션 오버레이 */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-10" />
             </div>
 
             {/* 본문 정보 영역 */}

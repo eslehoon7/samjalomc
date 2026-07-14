@@ -36,6 +36,12 @@ const defaultSubjectImages: Record<string, string[]> = {
   detox: [
     "/images/samjal_crew_1779805249409.png",
     "/images/samjal_crew_professional_1780495405627.png"
+  ],
+  paralysis: [
+    "/images/samjal_crew_professional_1780495405627.png",
+    "/images/professional_clean_acupuncture_1780497559621.png",
+    "/images/clinic_interior_1779805270752.png",
+    "/images/hygienic_premium_hanbang_herbal_1780497683155.png"
   ]
 };
 
@@ -67,6 +73,12 @@ const subjectImageNames: Record<string, string[]> = {
   detox: [
     "정정 해독 요법",
     "생체 재생 연구팀"
+  ],
+  paralysis: [
+    "안면마비",
+    "정밀 약침치료",
+    "쾌적한 힐링환경",
+    "신경 활성 체질한약"
   ]
 };
 
@@ -179,24 +191,16 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
   useEffect(() => {
     // 모든 주요 이미지를 백그라운드 캐시에 사전 로딩(Preload)하여 탭 클릭 시 즉각 표시되도록 처리
     const urlsToPreload = new Set<string>();
-    
-    Object.values(defaultSubjectImages).forEach((urls: any) => {
-      (urls as string[]).forEach(url => {
+    Object.values(defaultSubjectImages).forEach(urls => {
+      urls.forEach(url => {
         if (url) urlsToPreload.add(url);
       });
     });
-    
-    Object.values(subjectImages).forEach((urls: any) => {
-      (urls as string[]).forEach(url => {
-        if (url) urlsToPreload.add(url);
-      });
-    });
-    
     urlsToPreload.forEach(url => {
       const img = new Image();
       img.src = url;
     });
-  }, [subjectImages]);
+  }, []);
 
   const subTabs = [
     { id: "spine", label: "통증/관절/척추질환" },
@@ -204,6 +208,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
     { id: "allergy", label: "알레르기" },
     { id: "cancer", label: "통합암관리" },
     { id: "detox", label: "항노화/해독" },
+    { id: "paralysis", label: "안면마비" },
   ];
 
   const contents = {
@@ -297,6 +302,23 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
         "세포 산화 및 녹슮 방지 (초강력 항산화 네트워크)"
       ],
       image: "/images/hygienic_premium_hanbang_herbal_1780497683155.png"
+    },
+    paralysis: {
+      title: "안면마비",
+      subtitle: "안면마비 클리닉",
+      desc: "안면마비 클리닉\n구안와사 증상을 일으키는 안면신경마비의 급성기/회복기에 따라 다른 치료방법을 적용하여 안면신경을 손상으로부터 보호하고 후유증을 최소화합니다.",
+      diseases: "초기 급성 안면마비, 만성 안면마비 후유증, 소아/임산부 안면마비, 대상포진성 안면마비(람세이헌트 증후군)",
+      diseasesList: [
+        "초기 급성 안면마비",
+        "만성 안면마비 후유증",
+        "소아 / 임산부 안면마비",
+        "대상포진성 안면마비 (람세이헌트)"
+      ],
+      benefits: [
+        "급성기(2주): 항염증, 항바이러스, 신경보호, 근위축 방지",
+        "회복기(이후): 신경재생인자 발현, 축삭 재생 촉진, 신경-근육 지배 정상화"
+      ],
+      image: "/images/professional_clean_acupuncture_1780497559621.png"
     }
   };
 
@@ -417,8 +439,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
             <div className="pt-4">
               <button
                 onClick={() => {
-                  setActiveTab("reservation");
-                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  window.open("https://naver.me/xtNNu5e6", "_blank", "noopener,noreferrer");
                 }}
                 className="uiverse-btn inline-flex items-center justify-center gap-2 font-sans font-semibold"
               >
@@ -457,6 +478,27 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
                       </div>
                     );
                   });
+                }
+
+                if (activeSubTab === "cancer" || activeSubTab === "paralysis") {
+                  const imgUrl = list[0] || current.image;
+                  const label = labelsList[0] || "";
+                  return (
+                    <div className="col-span-2 relative aspect-square w-full rounded-2xl overflow-hidden border border-slate-100 shadow-sm group">
+                      <ImageWithLoader
+                        src={imgUrl}
+                        alt={label || current.title}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      />
+                      {label && (
+                        <div className="absolute bottom-0 left-0 right-0 h-7 sm:h-8 bg-slate-900/75 backdrop-blur-[1px] flex items-center justify-center px-2 text-center">
+                          <span className="text-[10px] sm:text-xs text-white font-sans font-medium tracking-wide leading-none">
+                            {label}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
                 }
 
                 return list.map((imgUrl, idx) => {

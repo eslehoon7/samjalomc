@@ -114,6 +114,12 @@ export default function SubAdmin() {
     detox: [
       "/images/samjal_crew_1779805249409.png",
       "/images/samjal_crew_professional_1780495405627.png"
+    ],
+    paralysis: [
+      "/images/samjal_crew_professional_1780495405627.png",
+      "/images/professional_clean_acupuncture_1780497559621.png",
+      "/images/clinic_interior_1779805270752.png",
+      "/images/hygienic_premium_hanbang_herbal_1780497683155.png"
     ]
   };
   const defaultSubjectLabels: Record<string, string[]> = {
@@ -144,6 +150,12 @@ export default function SubAdmin() {
     detox: [
       "정정 해독 요법",
       "생체 재생 연구팀"
+    ],
+    paralysis: [
+      "안면마비",
+      "정밀 약침치료",
+      "쾌적한 힐링환경",
+      "신경 활성 체질한약"
     ]
   };
   const [subjectImagesMap, setSubjectImagesMap] = useState<Record<string, string[]>>(defaultSubjectImages);
@@ -2669,10 +2681,11 @@ export default function SubAdmin() {
                 { id: "internal", name: "내과질환" },
                 { id: "allergy", name: "알레르기 및 면역질환" },
                 { id: "cancer", name: "한양방 통합 암관리 클리닉" },
-                { id: "detox", name: "항노화 및 생체 디톡스 해독" }
+                { id: "detox", name: "항노화 및 생체 디톡스 해독" },
+                { id: "paralysis", name: "안면신경 마비재생 센터" }
               ].map((subject) => {
                 const baseImgList = subjectImagesMap[subject.id] || defaultSubjectImages[subject.id];
-                let imgList = subject.id === "cancer" ? [baseImgList[0]] : baseImgList;
+                let imgList = (subject.id === "cancer" || subject.id === "paralysis") ? [baseImgList[0]] : baseImgList;
                 return (
                   <div key={subject.id} className="border border-slate-200/80 rounded-2xl p-5 sm:p-6 bg-slate-50/30">
                     <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">

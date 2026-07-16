@@ -1807,7 +1807,7 @@ export default function SubAdmin() {
 
         <div className="flex border-b border-slate-200 mb-8 justify-center sm:justify-start gap-2 overflow-x-auto scroller-hidden">
           <button onClick={() => setActiveSubTab("notices")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all shrink-0 cursor-pointer flex items-center gap-2 ${activeSubTab === "notices" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
-            <Megaphone className="w-4 h-4" /><span>공정 사항 게재 ({notices.length})</span>
+            <Megaphone className="w-4 h-4" /><span>공지사항 게재 ({notices.length})</span>
           </button>
           <button onClick={() => setActiveSubTab("photos")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all shrink-0 cursor-pointer flex items-center gap-2 ${activeSubTab === "photos" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
             <Image className="w-4 h-4" /><span>인테리어 롤링 관리 ({photos.length})</span>

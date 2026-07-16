@@ -5,7 +5,8 @@ interface FooterProps {
 }
 
 export default function Footer({ setActiveTab }: FooterProps) {
-  const handleQuickLink = (tabId: string) => {
+  const handleQuickLink = (e: React.MouseEvent, tabId: string) => {
+    e.preventDefault();
     setActiveTab(tabId);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -17,9 +18,10 @@ export default function Footer({ setActiveTab }: FooterProps) {
           
           {/* 브랜드 및 연락처 */}
           <div className="flex flex-col items-start">
-            <div 
+            <a 
+              href="/"
               className="flex items-center gap-3 cursor-pointer group pb-1"
-              onClick={() => handleQuickLink("home")}
+              onClick={(e) => handleQuickLink(e, "home")}
             >
               <div className="w-[52px] h-[52px] flex items-center justify-center">
                 <img
@@ -37,7 +39,7 @@ export default function Footer({ setActiveTab }: FooterProps) {
                   SAMJAL KMED CLINIC
                 </p>
               </div>
-            </div>
+            </a>
           </div>
 
           {/* 지점 정보 */}
@@ -71,12 +73,13 @@ export default function Footer({ setActiveTab }: FooterProps) {
               비급여비용안내
             </a>
             <span>|</span>
-            <button 
-              onClick={() => handleQuickLink("admin")}
+            <a 
+              href="/admin"
+              onClick={(e) => handleQuickLink(e, "admin")}
               className="hover:text-slate-300 transition-colors cursor-pointer"
             >
               관리자페이지
-            </button>
+            </a>
           </div>
         </div>
       </div>

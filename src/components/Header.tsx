@@ -33,7 +33,8 @@ export default function Header({ activeTab, setActiveTab, openReservationModal }
     { id: "notice", label: "공지사항" },
   ];
 
-  const handleMenuClick = (tabId: string) => {
+  const handleMenuClick = (e: React.MouseEvent, tabId: string) => {
+    e.preventDefault();
     setActiveTab(tabId);
     setIsOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -54,9 +55,10 @@ export default function Header({ activeTab, setActiveTab, openReservationModal }
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`flex justify-between items-center transition-all duration-300 ${isTransparentMode ? "h-24" : "h-20"}`}>
           {/* 로고 영역 */}
-          <div 
+          <a 
+            href="/"
             className="flex items-center gap-3 cursor-pointer group"
-            onClick={() => handleMenuClick("home")}
+            onClick={(e) => handleMenuClick(e, "home")}
           >
             <div className="w-[52px] h-[52px] flex items-center justify-center transition-all duration-300">
               <img
@@ -76,14 +78,15 @@ export default function Header({ activeTab, setActiveTab, openReservationModal }
                 SAMJAL KMED CLINIC
               </p>
             </div>
-          </div>
+          </a>
 
           {/* 데스크탑 네비게이션 */}
           <nav className="hidden md:flex items-center space-x-10">
             {menuItems.map((item) => (
-              <button
+              <a
                 key={item.id}
-                onClick={() => handleMenuClick(item.id)}
+                href={`/${item.id}`}
+                onClick={(e) => handleMenuClick(e, item.id)}
                 className={`relative py-2 text-[15px] font-sans tracking-wider transition-colors duration-300 cursor-pointer ${
                   activeTab === item.id
                     ? isTransparentMode
@@ -98,7 +101,7 @@ export default function Header({ activeTab, setActiveTab, openReservationModal }
                 {activeTab === item.id && (
                   <span className={`absolute bottom-0 left-0 w-full h-0.5 transition-colors duration-300 ${isTransparentMode ? "bg-white" : "bg-[#0F2C59]"}`} />
                 )}
-              </button>
+              </a>
             ))}
           </nav>
 
@@ -153,9 +156,10 @@ export default function Header({ activeTab, setActiveTab, openReservationModal }
           >
             <div className="px-4 pt-2 pb-6 space-y-1">
               {menuItems.map((item) => (
-                <button
+                <a
                   key={item.id}
-                  onClick={() => handleMenuClick(item.id)}
+                  href={`/${item.id}`}
+                  onClick={(e) => handleMenuClick(e, item.id)}
                   className={`block w-full text-left px-4 py-3 rounded-lg text-base font-sans tracking-wider transition-colors cursor-pointer ${
                     activeTab === item.id
                       ? "bg-[#0F2C59]/30 text-[#0F2C59] font-semibold"
@@ -163,7 +167,7 @@ export default function Header({ activeTab, setActiveTab, openReservationModal }
                   }`}
                 >
                   {item.label}
-                </button>
+                </a>
               ))}
               <div className="pt-4">
                 <button

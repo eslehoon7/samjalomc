@@ -12,7 +12,57 @@ import SubNotice from "./components/SubNotice";
 import SubReservation from "./components/SubReservation";
 import SubAdmin from "./components/SubAdmin";
 export default function App() {
-  const [activeTab, setActiveTab] = useState("home");
+  // Helper to map pathname to activeTab ID
+  const getTabFromPathname = (path: string): string => {
+    const cleanPath = path.replace(/\/$/, ""); // remove trailing slash
+    switch (cleanPath) {
+      case "/intro":
+        return "intro";
+      case "/subject":
+        return "subject";
+      case "/location":
+        return "location";
+      case "/notice":
+        return "notice";
+      case "/reservation":
+        return "reservation";
+      case "/admin":
+        return "admin";
+      case "":
+      case "/":
+      case "/home":
+      default:
+        return "home";
+    }
+  };
+
+  // Helper to map tabId to pathname
+  const getPathnameFromTab = (tab: string): string => {
+    if (tab === "home") return "/";
+    return `/${tab}`;
+  };
+
+  const [activeTab, setActiveTabState] = useState(() => {
+    return getTabFromPathname(window.location.pathname);
+  });
+
+  const setActiveTab = (tab: string) => {
+    setActiveTabState(tab);
+    const targetPath = getPathnameFromTab(tab);
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState(null, "", targetPath);
+    }
+  };
+
+  // Listen to popstate (browser back/forward)
+  useEffect(() => {
+    const handlePopState = () => {
+      setActiveTabState(getTabFromPathname(window.location.pathname));
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   const [introSubTab, setIntroSubTab] = useState("philosophy");
 
   // 메뉴 변경 시 화면 최상단으로 부드럽게 스크롤 (모바일 및 전 기기 적용)

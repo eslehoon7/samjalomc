@@ -47,8 +47,15 @@ const defaultItems = [
   }
 ];
 
-export default function SubLocation() {
-  const [activeBranch, setActiveBranch] = useState("nowon");
+interface SubLocationProps {
+  activeBranch?: string;
+  setActiveBranch?: (branch: string) => void;
+}
+
+export default function SubLocation({ activeBranch: propActiveBranch, setActiveBranch: propSetActiveBranch }: SubLocationProps = {}) {
+  const [localBranch, setLocalBranch] = useState("nowon");
+  const activeBranch = propActiveBranch !== undefined ? propActiveBranch : localBranch;
+  const setActiveBranch = propSetActiveBranch !== undefined ? propSetActiveBranch : setLocalBranch;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Leaflet Map Refs & Coordinates
@@ -181,6 +188,7 @@ export default function SubLocation() {
     je_jengjin: "/images/samjal_crew_professional_1780495405627.png",
     je_hyunyoung: "/images/samjal_characters_expert_1780495449389.jpg"
   });
+  const [profilesData, setProfilesData] = useState<Record<string, any>>({});
 
   useEffect(() => {
     // 실시간 의료진 프로필 동기화
@@ -190,12 +198,18 @@ export default function SubLocation() {
         je_jengjin: "/images/samjal_crew_professional_1780495405627.png",
         je_hyunyoung: "/images/samjal_characters_expert_1780495449389.jpg"
       };
+      const dataMap: Record<string, any> = {};
       snap.forEach(d => {
-        if (d.id && d.data().image) {
-          updated[d.id as keyof typeof updated] = d.data().image;
+        const val = d.data();
+        if (d.id) {
+          if (val.image) {
+            updated[d.id as keyof typeof updated] = val.image;
+          }
+          dataMap[d.id] = val;
         }
       });
       setProfiles(updated);
+      setProfilesData(dataMap);
     }, (err) => {
       console.warn("의료진 프로필 데이터 실시간 동기화 오프라인 폴백:", err);
     });
@@ -318,33 +332,39 @@ export default function SubLocation() {
         ]
       },
       doctor: {
-        name: "전준영 원장",
+        name: profilesData.jeon_junyoung?.name || "전준영 원장",
         role: "삼잘한의원 노원점 대표원장",
         image: profiles.jeon_junyoung,
-        credentials: [
-          "경희대 한의대 학사",
-          "경희대 한의대 임상한의학 석사",
-          "경희대 한방병원 인턴/레지던트 과정 수료",
-          "경희대 한방병원 척추관절센터/뇌졸중센터 재직",
-          "한방재활의학과 전문의",
-          "한방비만학회 연구자문위원"
-        ],
-        research: [
-          "삼잘에센셜 처방 수석 연구원(Head Developer of formulation)",
-          "De-tox캡슐 수원단 연구개발",
-          "Anti-inflammatory formula 프라이머 오일 연구개발",
-          "관절염 솔루션: Feather-step 연구개발",
-          "알레르기 솔루션: Allergy-control 연구개발",
-          "불면증 솔루션: Goyo 연구개발",
-          "항노화 포뮬러: Cell-renewal 연구개발"
-        ],
-        papers: [
-          "만성 긴장성 두통에 대한 양측 완골과 풍지혈 전침 치료의 효과, 한방재활의학과학회지",
-          "교통사고로 인한 편타손상의 침 치료에 대한 임상연구의 국내외 동향, 한방재활의학과학회지",
-          "상지의 단일신경병증에 대한 수기치료의 국내외 동향, 한방재활의학과학회지",
-          "AGREE II 를 이용한 턱관절 장애의 국내외 기개발임상진료지침의 평가, 한방재활의학과학회지",
-          "근골격계 질환에서 도구를 이용한 수기요법의 연구동향 고찰, 한방재활의학과학회지"
-        ]
+        credentials: profilesData.jeon_junyoung?.role
+          ? profilesData.jeon_junyoung.role.split("\n").filter((line: string) => line.trim() !== "")
+          : [
+              "경희대 한의대 학사",
+              "경희대 한의대 임상한의학 석사",
+              "경희대 한방병원 인턴/레지던트 과정 수료",
+              "경희대 한방병원 척추관절센터/뇌졸중센터 재직",
+              "한방재활의학과 전문의",
+              "한방비만학회 연구자문위원"
+            ],
+        researchTitle: profilesData.jeon_junyoung?.researchTitle || "삼잘에센셜 처방 수석 연구원(Head Developer of formulation)",
+        research: (profilesData.jeon_junyoung?.desc
+          ? profilesData.jeon_junyoung.desc.split("\n").filter((line: string) => line.trim() !== "")
+          : [
+              "De-tox캡슐 수원단 연구개발",
+              "Anti-inflammatory formula 프라이머 오일 연구개발",
+              "관절염 솔루션: Feather-step 연구개발",
+              "알레르기 솔루션: Allergy-control 연구개발",
+              "불면증 솔루션: Goyo 연구개발",
+              "항노화 포뮬러: Cell-renewal 연구개발"
+            ]).filter((line: string) => line !== (profilesData.jeon_junyoung?.researchTitle || "삼잘에센셜 처방 수석 연구원(Head Developer of formulation)")),
+        papers: profilesData.jeon_junyoung?.tag
+          ? profilesData.jeon_junyoung.tag.split("\n").filter((line: string) => line.trim() !== "")
+          : [
+              "만성 긴장성 두통에 대한 양측 완골과 풍지혈 전침 치료의 효과, 한방재활의학과학회지",
+              "교통사고로 인한 편타손상의 침 치료에 대한 임상연구의 국내외 동향, 한방재활의학과학회지",
+              "상지의 단일신경병증에 대한 수기치료의 국내외 동향, 한방재활의학과학회지",
+              "AGREE II 를 이용한 턱관절 장애의 국내외 기개발임상진료지침의 평가, 한방재활의학과학회지",
+              "근골격계 질환에서 도구를 이용한 수기요법의 연구동향 고찰, 한방재활의학과학회지"
+            ]
       },
       features: [
         "체질맥진 자율신경계 디지털 정밀 분석 장비 완비",
@@ -375,31 +395,40 @@ export default function SubLocation() {
         ]
       },
       doctor: {
-        name: "제정진 원장",
+        name: profilesData.je_jengjin?.name || "제정진 원장",
         role: "삼잘한의원 구리점 대표원장",
         image: profiles.je_jengjin,
-        credentials: [
-          "경희대 한의대 학사",
-          "경희대 한의대 임상한의학 박사",
-          "한체대 대학원 체육학 박사",
-          "경희대학교 한방병원 한방내과 레지던트 이수",
-          "2016년 리우, 2018년 평창, 2020년 도쿄, 2024년 파리 올림픽에서 패럴림픽 국가대표팀 주치의 역할을 수행했습니다",
-          "삼잘에센셜 처방 개발 고문",
-          "전)상지대 한의대 교수",
-          "전)대한스포츠한의학회 회장"
-        ],
-        research: [
-          "삼잘에센셜 처방 임상 연구 고문(Clinical Research Advisor)"
-        ],
-        papers: [
-          "2015 한약의 도핑관리, 대한스포츠한의학회지",
-          "혈부축어탕이 Adjuvant유발 관절염에 미치는 영향[dissertation], 경희대 박사학위",
-          "중풍으로 인한 견비통의 초음파를 이용한 온경락요법 치료효과, 한방재활의학과학회지",
-          "골다공증 검진 방법에 대한 소고, 한방재활의학과학회지",
-          "용골, 모려, 구판, 별갑, 아교가 골다공증에 미치는 영향에 대한 문헌적 고찰, 한방재활의학과학회지",
-          "허비증에 대한 문헌적 고찰, 한방재활의학과학회지",
-          "치료용 레이저에 대한 소고, 대한한의학회지"
-        ]
+        credentials: profilesData.je_jengjin?.role
+          ? profilesData.je_jengjin.role.split("\n").filter((line: string) => line.trim() !== "")
+          : [
+              "경희대 한의대 학사",
+              "경희대 한의대 임상한의학 박사",
+              "한체대 대학원 체육학 박사",
+              "경희대학교 한방병원 한방내과 레지던트 이수",
+              "2016년 리우, 2018년 평창, 2020년 도쿄, 2024년 파리 올림픽에서 패럴림픽 국가대표팀 주치의 역할을 수행했습니다",
+              "삼잘에센셜 처방 개발 고문",
+              "전)상지대 한의대 교수",
+              "전)대한스포츠한의학회 회장"
+            ],
+        researchTitle: profilesData.je_jengjin?.researchTitle || "삼잘에센셜 처방 임상 연구 고문(Clinical Research Advisor)",
+        research: (profilesData.je_jengjin?.desc
+          ? profilesData.je_jengjin.desc.split("\n").filter((line: string) => line.trim() !== "")
+          : [
+              "삼잘에센셜 처방 임상 연구 고문(Clinical Research Advisor)",
+              "척추관절 질환 심부안정화 침구법 연구",
+              "스포츠 운동 상해 한의치료 임상 가이드라인 수립"
+            ]).filter((line: string) => line !== (profilesData.je_jengjin?.researchTitle || "삼잘에센셜 처방 임상 연구 고문(Clinical Research Advisor)")),
+        papers: profilesData.je_jengjin?.tag
+          ? profilesData.je_jengjin.tag.split("\n").filter((line: string) => line.trim() !== "")
+          : [
+              "2015 한약의 도핑관리, 대한스포츠한의학회지",
+              "혈부축어탕이 Adjuvant유발 관절염에 미치는 영향[dissertation], 경희대 박사학위",
+              "중풍으로 인한 견비통의 초음파를 이용한 온경락요법 치료효과, 한방재활의학과학회지",
+              "골다공증 검진 방법에 대한 소고, 한방재활의학과학회지",
+              "용골, 모려, 구판, 별갑, 아교가 골다공증에 미치는 영향에 대한 문헌적 고찰, 한방재활의학과학회지",
+              "허비증에 대한 문헌적 고찰, 한방재활의학과학회지",
+              "치료용 레이저에 대한 소고, 대한한의학회지"
+            ]
       },
       features: [
         "정밀 자동 추출 설비 및 원내 무독 청정 안심 탕전 시스템",
@@ -546,20 +575,44 @@ export default function SubLocation() {
                 </ul>
               </div>
 
-              {/* 구분선 */}
-              <div className="h-[1px] bg-slate-200 w-full" />
-
               {/* [우측 하단] 연구개발 분야 및 논문 리스트 */}
-              <div className="space-y-6">
+              <div className="space-y-6 pt-2">
                 {/* 연구개발 분야 */}
                 <div className="space-y-3.5 lg:translate-x-3 translate-x-1">
+                  {current.doctor.researchTitle && (
+                    <div className="text-sm sm:text-base md:text-[17px] font-sans text-[#0F172A] leading-relaxed pb-1 mb-2 flex flex-wrap items-baseline gap-1">
+                      {(() => {
+                        const title = current.doctor.researchTitle;
+                        if (title.includes("(") && (title.includes("formulation") || title.includes("Advisor") || title.includes("Research") || title.includes("연구") || title.includes("Developer"))) {
+                          const openParenIdx = title.indexOf("(");
+                          const mainPart = title.slice(0, openParenIdx).trim();
+                          const headPart = title.slice(openParenIdx).trim();
+                          return (
+                            <>
+                              <strong className="text-[#0F2C59] font-extrabold text-base sm:text-lg md:text-xl">
+                                {mainPart}
+                              </strong>
+                              <span className="text-xs sm:text-sm text-slate-400 font-sans font-medium">
+                                {headPart}
+                              </span>
+                            </>
+                          );
+                        }
+                        return (
+                          <strong className="text-[#0F2C59] font-extrabold text-base sm:text-lg md:text-xl">
+                            {title}
+                          </strong>
+                        );
+                      })()}
+                    </div>
+                  )}
                   {current.doctor.research.map((res: string, idx: number) => {
                     if (res.includes("(") && (res.includes("formulation") || res.includes("Advisor") || res.includes("Research"))) {
                       const openParenIdx = res.indexOf("(");
                       const mainPart = res.slice(0, openParenIdx).trim();
                       const headPart = res.slice(openParenIdx).trim();
                       return (
-                        <div key={idx} className="text-sm sm:text-base md:text-[17px] font-sans text-[#0F172A] leading-relaxed pb-3 border-b border-slate-200 mb-3 flex flex-wrap items-baseline gap-1">
+                        <div key={idx} className="text-sm sm:text-base md:text-[17px] font-sans text-[#0F172A] leading-relaxed pb-1 mb-2 flex flex-wrap items-baseline gap-1">
                           <strong className="text-[#0F2C59] font-extrabold text-base sm:text-lg md:text-xl">
                             {mainPart}
                           </strong>
@@ -643,34 +696,61 @@ export default function SubLocation() {
                   
                   {/* 한의대 약력 list */}
                   <ul className="space-y-2.5 text-sm sm:text-[15px] font-sans text-slate-500 leading-relaxed font-medium">
-                    <li className="break-keep">상지대 한의대 졸업</li>
-                    <li className="break-keep">체육학 석사(한체대 대학원)</li>
-                    <li className="break-keep">동수원 한방병원 인턴 과정 수료(일반수련 수료의)</li>
-                    <li className="break-keep">동수원 한방병원 응급진료실 재직</li>
-                    <li className="break-keep">전)한의약진흥원 연구원</li>
+                    {(profilesData.je_hyunyoung?.role
+                      ? profilesData.je_hyunyoung.role.split("\n").filter((line: string) => line.trim() !== "")
+                      : [
+                          "상지대 한의대 졸업",
+                          "체육학 석사(한체대 대학원)",
+                          "동수원 한방병원 인턴 과정 수료(일반수련 수료의)",
+                          "동수원 한방병원 응급진료실 재직",
+                          "전)한의약진흥원 연구원"
+                        ]
+                    ).map((cred: string, idx: number) => (
+                      <li key={idx} className="break-keep">{cred}</li>
+                    ))}
                   </ul>
                 </div>
 
-                {/* 구분선 */}
-                <div className="h-[1px] bg-slate-200 w-full" />
-
                 {/* [우측 하단] 중점진료영역 및 논문 리스트 */}
-                <div className="space-y-6">
+                <div className="space-y-6 pt-2">
                   {/* 중점진료영역 */}
                   <div className="space-y-3.5 lg:translate-x-3 translate-x-1">
-                    <div className="text-sm sm:text-base md:text-[17px] font-sans text-[#0F172A] leading-relaxed pb-3 border-b border-slate-200 mb-3 flex flex-wrap items-baseline gap-1">
-                      <strong className="text-[#0F2C59] font-extrabold text-base sm:text-lg md:text-xl">
-                        중점진료영역
-                      </strong>
+                    <div className="text-sm sm:text-base md:text-[17px] font-sans text-[#0F172A] leading-relaxed pb-1 mb-2 flex flex-wrap items-baseline gap-1">
+                      {(() => {
+                        const res = profilesData.je_hyunyoung?.researchTitle || "중점진료영역";
+                        if (res.includes("(") && (res.includes("formulation") || res.includes("Advisor") || res.includes("Research") || res.includes("연구") || res.includes("Developer"))) {
+                          const openParenIdx = res.indexOf("(");
+                          const mainPart = res.slice(0, openParenIdx).trim();
+                          const headPart = res.slice(openParenIdx).trim();
+                          return (
+                            <>
+                              <strong className="text-[#0F2C59] font-extrabold text-base sm:text-lg md:text-xl">
+                                {mainPart}
+                              </strong>
+                              <span className="text-xs sm:text-sm text-slate-400 font-sans font-medium">
+                                {headPart}
+                              </span>
+                            </>
+                          );
+                        }
+                        return (
+                          <strong className="text-[#0F2C59] font-extrabold text-base sm:text-lg md:text-xl">
+                            {res}
+                          </strong>
+                        );
+                      })()}
                     </div>
                     <div className="space-y-2.5">
-                      {[
-                        "여성질환",
-                        "다이어트",
-                        "척추/관절/통증 질환",
-                        "외상성 질환(교통사고, 스포츠)",
-                        "Foreigner Clinic"
-                      ].map((item, idx) => (
+                      {(profilesData.je_hyunyoung?.desc
+                        ? profilesData.je_hyunyoung.desc.split("\n").filter((line: string) => line.trim() !== "")
+                        : [
+                            "여성질환",
+                            "다이어트",
+                            "척추/관절/통증 질환",
+                            "외상성 질환(교통사고, 스포츠)",
+                            "Foreigner Clinic"
+                          ]
+                      ).map((item: string, idx: number) => (
                         <div key={idx} className="text-sm sm:text-base md:text-[17px] font-sans text-slate-700 leading-relaxed font-semibold flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-[#0F2C59]/70 shrink-0" />
                           <span>{item}</span>
@@ -680,20 +760,27 @@ export default function SubLocation() {
                   </div>
 
                   {/* 논문 리스트 */}
-                  <div className="flex gap-4 items-stretch pt-4 border-t border-slate-200 lg:translate-x-3 translate-x-1">
-                    <div className="w-[1.5px] bg-[#0F2C59]/40 shrink-0 self-stretch my-1" />
-                    <div className="space-y-2">
-                      <span className="text-xs sm:text-sm font-sans font-bold text-[#0F172A] block tracking-wide">
-                        논문
-                      </span>
-                      <ul className="space-y-2.5 text-xs font-sans text-slate-400 leading-relaxed break-keep">
-                        <li className="relative pl-3.5">
-                          <span className="absolute left-0 top-1.5 w-1 h-1 rounded-full bg-[#0F2C59]/70" />
-                          코어근육에 적용한 동작침법이 남자 대학 골프선수의 관절 가동성, 근 파워 및 드라이버 수행력에 미치는 급성효과, 2024
-                        </li>
-                      </ul>
+                  {(profilesData.je_hyunyoung?.tag || "코어근육에 적용한 동작침법이 남자 대학 골프선수의 관절 가동성, 근 파워 및 드라이버 수행력에 미치는 급성효과, 2024") && (
+                    <div className="flex gap-4 items-stretch pt-4 lg:translate-x-3 translate-x-1">
+                      <div className="w-[1.5px] bg-[#0F2C59]/40 shrink-0 self-stretch my-1" />
+                      <div className="space-y-2">
+                        <span className="text-xs sm:text-sm font-sans font-bold text-[#0F172A] block tracking-wide">
+                          논문
+                        </span>
+                        <ul className="space-y-2.5 text-xs font-sans text-slate-400 leading-relaxed break-keep">
+                          {(profilesData.je_hyunyoung?.tag
+                            ? profilesData.je_hyunyoung.tag.split("\n").filter((line: string) => line.trim() !== "")
+                            : ["코어근육에 적용한 동작침법이 남자 대학 골프선수의 관절 가동성, 근 파워 및 드라이버 수행력에 미치는 급성효과, 2024"]
+                          ).map((paper: string, idx: number) => (
+                            <li key={idx} className="relative pl-3.5">
+                              <span className="absolute left-0 top-1.5 w-1 h-1 rounded-full bg-[#0F2C59]/70" />
+                              {paper}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>

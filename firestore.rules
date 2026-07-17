@@ -40,5 +40,10 @@ service cloud.firestore {
     match /intro_images/{introId} {
       allow read, write: if true;
     }
+
+    // 9. main_visuals Collection Rules
+    match /main_visuals/{visualId} {
+      allow read, write: if true;
+    }
   }
 }

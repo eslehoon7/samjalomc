@@ -148,6 +148,53 @@
         }
       },
       "required": ["id"]
+    },
+    "MainVisual": {
+      "title": "MainVisual",
+      "description": "홈페이지 메인 롤링 이미지(배너/슬라이드) 모델",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string",
+          "description": "이미지 URL"
+        },
+        "title": {
+          "type": "string",
+          "description": "대제목"
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "소제목"
+        },
+        "desc": {
+          "type": "string",
+          "description": "설명 문구"
+        },
+        "linkTab": {
+          "type": "string",
+          "description": "이동할 메인 탭 ID"
+        },
+        "subTab": {
+          "type": "string",
+          "description": "이동할 서브 탭 ID"
+        },
+        "positionClass": {
+          "type": "string",
+          "description": "이미지 배치 정렬용 CSS 클래스 (예: object-center, object-top 등)"
+        },
+        "order": {
+          "type": "integer",
+          "description": "정렬 순서"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "생성 시간"
+        }
+      },
+      "required": ["image", "title", "order"]
     }
   },
   "firestore": {
@@ -178,6 +225,10 @@
     "diagnoses": {
       "schema": "Diagnose",
       "description": "자가진단 기록 컬렉션"
+    },
+    "main_visuals": {
+      "schema": "MainVisual",
+      "description": "메인 비주얼 롤링 배너 컬렉션"
     }
   }
 }

@@ -6,6 +6,8 @@ import { collection, onSnapshot, doc, setDoc } from "firebase/firestore";
 
 interface SubSubjectProps {
   setActiveTab: (tab: string) => void;
+  activeSubTab?: string;
+  setActiveSubTab?: (tab: string) => void;
 }
 
 const defaultSubjectImages: Record<string, string[]> = {
@@ -143,16 +145,78 @@ const itemVariants = {
   }
 };
 
-export default function SubSubject({ setActiveTab }: SubSubjectProps) {
-  const [activeSubTab, setActiveSubTab] = useState("spine");
+export default function SubSubject({ setActiveTab, activeSubTab: propActiveSubTab, setActiveSubTab: propSetActiveSubTab }: SubSubjectProps) {
+  const [localSubTab, setLocalSubTab] = useState("spine");
+  const activeSubTab = propActiveSubTab !== undefined ? propActiveSubTab : localSubTab;
+  const setActiveSubTab = propSetActiveSubTab !== undefined ? propSetActiveSubTab : setLocalSubTab;
   const [subjectImages, setSubjectImages] = useState<Record<string, string[]>>(defaultSubjectImages);
   const [subjectLabels, setSubjectLabels] = useState<Record<string, string[]>>(subjectImageNames);
+
+  const defaultSubjectNames: Record<string, string> = {
+    spine: "통증 / 관절 / 척추질환",
+    internal: "내과질환",
+    allergy: "알레르기 및 면역질환",
+    cancer: "한양방 통합 암관리 클리닉",
+    detox: "항노화 및 생체 디톡스 해독",
+    paralysis: "안면신경 마비재생 센터"
+  };
+  const [subjectNames, setSubjectNames] = useState<Record<string, string>>(defaultSubjectNames);
+
+  const defaultSubjectDescs: Record<string, string> = {
+    spine: "통증을 없애는 것도 중요하지만 해당 증상이 일어나게 된 과정을 함께 치료합니다.\n만성적 문제를 유발하는 자세이상을 교정하고 관절의 심부근육 활성도를 높입니다.",
+    internal: "소화기계, 호흡기계, 순환기계, 내분비계, 비뇨생식기계, 자율신경계의 문제를 각자 분리해서 보지 않고 통합적인 관점에서 살피고 치료합니다.",
+    allergy: "결과로서의 증상 뿐 아니라 그 이면의 선행과정들을 함께 다스리는 것을 목표로 합니다.",
+    cancer: "표준 항암치료와 병행 가능한 과학적이고 무해한 천연화합물 요법을 지향합니다. 재발 및 전이 가능성을 낮추고 항암부작용을 줄입니다. 암종과 병기에 따라 다른 치료법을 적용합니다.",
+    detox: "노화는 피할 수 없는 자연 현상이 아니라, 세포내 유전자 손상과 대사기능의 저하로 인해 발생하는 ‘관리가능한 생물학적 프로세스’입니다.\n본원만의 독자적인 추출 공정으로 완성한 ‘셀리뉴얼’을 통해, 노화의 근본 원인인 세포시계를 늦추고 젊음의 대사 스위치를 다시 켭니다.",
+    paralysis: "구안와사 증상을 일으키는 안면신경마비의 급성기/회복기에 따라 다른 치료방법을 적용하여 안면신경을 손상으로부터 보호하고 후유증을 최소화합니다."
+  };
+  const [subjectDescs, setSubjectDescs] = useState<Record<string, string>>(defaultSubjectDescs);
+
+  const defaultSubjectBenefits: Record<string, string[]> = {
+    spine: [
+      "통증: 두통, 통풍, 자세이상(거북목, 굽은 등), 섬유근육통, 만성 통증",
+      "관절: 어깨(오십견, 회전근개 파열), 팔꿈치(테니스엘보, 관절염), 고관절, 무릎(퇴행성 관절염), 발목, 손가락/발가락",
+      "척추: 목/허리 디스크, 척추 협착증, 전방전위증, 자세이상"
+    ],
+    internal: [
+      "소화기계: 만성소화불량, 저체중, 변비, 과민성장증후군, 역류성 위식도질환",
+      "호흡기계: 만성기침, 알레르기(비염, 천식)",
+      "순환기계: 가슴 두근거림, 고혈압, 울혈성 심부전, 부종",
+      "내분비계: 과체중, 당뇨, 고지혈증, 만성피로",
+      "자율신경계: 자율신경 실조증, 미주신경성 실신, 이석증, 공황장애"
+    ],
+    allergy: [
+      "알레르기성 비염",
+      "알레르기성 결막염",
+      "만성 두드러기",
+      "아토피/천식"
+    ],
+    cancer: [
+      "재발 및 전이 관리",
+      "항암 부작용 관리",
+      "암종과 병기 맞춤 치료",
+      "암환자 식이요법"
+    ],
+    detox: [
+      "생물학적 세포 시계의 복원 (텔로머레이즈 활성화)",
+      "장수 유전자 및 대사 스위치 ON (SIRT1 & AMPK 타겟팅)",
+      "세포 산화 및 녹슮 방지 (초강력 항산화 네트워크)"
+    ],
+    paralysis: [
+      "급성기(2주): 항염증, 항바이러스, 신경보호, 근위축 방지",
+      "회복기(이후): 신경재생인자 발현, 축삭 재생 촉진, 신경-근육 지배 정상화"
+    ]
+  };
+  const [subjectBenefits, setSubjectBenefits] = useState<Record<string, string[]>>(defaultSubjectBenefits);
 
   useEffect(() => {
     // 실시간 진료과목 서브 이미지 및 명칭 동기화
     const unsubscribe = onSnapshot(collection(db, "subject_images"), (snap) => {
       const updatedImages = { ...defaultSubjectImages };
       const updatedLabels = { ...subjectImageNames };
+      const updatedNames = { ...defaultSubjectNames };
+      const updatedDescs = { ...defaultSubjectDescs };
+      const updatedBenefits = { ...defaultSubjectBenefits };
       snap.forEach(d => {
         const data = d.data();
         if (d.id !== "config" && d.id) {
@@ -161,6 +225,15 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
           }
           if (data.labels && Array.isArray(data.labels)) {
             updatedLabels[d.id] = data.labels;
+          }
+          if (data.name && typeof data.name === "string") {
+            updatedNames[d.id] = data.name;
+          }
+          if (data.desc && typeof data.desc === "string") {
+            updatedDescs[d.id] = data.desc;
+          }
+          if (data.benefits && Array.isArray(data.benefits)) {
+            updatedBenefits[d.id] = data.benefits;
           }
         }
       });
@@ -182,6 +255,9 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
 
       setSubjectImages(updatedImages);
       setSubjectLabels(updatedLabels);
+      setSubjectNames(updatedNames);
+      setSubjectDescs(updatedDescs);
+      setSubjectBenefits(updatedBenefits);
     }, (err) => {
       console.warn("진료과목 이미지 및 명칭 실시간 동기화 오프라인 폴백:", err);
     });
@@ -203,13 +279,21 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
   }, []);
 
   const subTabs = [
-    { id: "spine", label: "통증/관절/척추질환" },
-    { id: "internal", label: "내과질환" },
-    { id: "allergy", label: "알레르기" },
-    { id: "cancer", label: "통합암관리" },
-    { id: "detox", label: "항노화/해독" },
-    { id: "paralysis", label: "안면마비" },
-  ];
+    { id: "spine", defaultLabel: "통증 / 관절 / 척추질환", defaultShort: "통증/척추" },
+    { id: "internal", defaultLabel: "내과질환", defaultShort: "내과질환" },
+    { id: "allergy", defaultLabel: "알레르기 및 면역질환", defaultShort: "알레르기" },
+    { id: "cancer", defaultLabel: "한양방 통합 암관리 클리닉", defaultShort: "통합암" },
+    { id: "detox", defaultLabel: "항노화 및 생체 디톡스 해독", defaultShort: "해독/노화" },
+    { id: "paralysis", defaultLabel: "안면신경 마비재생 센터", defaultShort: "안면마비" },
+  ].map(tab => {
+    const customName = subjectNames[tab.id] || tab.defaultLabel;
+    const shortLabel = customName.length > 7 ? tab.defaultShort : customName;
+    return {
+      id: tab.id,
+      label: customName,
+      mobileLabel: shortLabel
+    };
+  });
 
   const contents = {
     spine: {
@@ -322,7 +406,13 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
     }
   };
 
-  const current = contents[activeSubTab as keyof typeof contents];
+  const rawCurrent = contents[activeSubTab as keyof typeof contents];
+  const current = {
+    ...rawCurrent,
+    title: subjectNames[activeSubTab] || rawCurrent.title,
+    desc: subjectDescs[activeSubTab] !== undefined ? subjectDescs[activeSubTab] : rawCurrent.desc,
+    benefits: subjectBenefits[activeSubTab] !== undefined ? subjectBenefits[activeSubTab] : rawCurrent.benefits
+  };
 
   return (
     <div className="bg-white min-h-screen animate-fadeIn">
@@ -364,24 +454,8 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
                     : "border-transparent text-slate-500 hover:text-[#0F2C59]"
                 }`}
               >
-                {ts.id === "spine" ? (
-                  <>
-                    <span className="inline md:hidden">통증/척추</span>
-                    <span className="hidden md:inline">{ts.label}</span>
-                  </>
-                ) : ts.id === "cancer" ? (
-                  <>
-                    <span className="inline md:hidden">통합암</span>
-                    <span className="hidden md:inline">{ts.label}</span>
-                  </>
-                ) : ts.id === "detox" ? (
-                  <>
-                    <span className="inline md:hidden">해독/노화</span>
-                    <span className="hidden md:inline">{ts.label}</span>
-                  </>
-                ) : (
-                  ts.label
-                )}
+                <span className="inline md:hidden">{ts.mobileLabel}</span>
+                <span className="hidden md:inline">{ts.label}</span>
               </button>
             ))}
           </div>
@@ -401,19 +475,7 @@ export default function SubSubject({ setActiveTab }: SubSubjectProps) {
             <div className="space-y-4">
               <div className="space-y-2">
                 <h3 className="text-2xl sm:text-3xl font-sans text-[#0F172A] font-bold leading-tight">
-                  {current.title === "통증/관절/척추질환 클리닉" ? (
-                    <>
-                      <span className="inline sm:hidden">통증/관절/<br />척추질환 클리닉</span>
-                      <span className="hidden sm:inline">통증/관절/척추질환 클리닉</span>
-                    </>
-                  ) : current.title === "내과질환 클리닉" ? (
-                    <>
-                      <span className="inline sm:hidden">내과질환 클리닉</span>
-                      <span className="hidden sm:inline">내과질환 클리닉</span>
-                    </>
-                  ) : (
-                    current.title
-                  )}
+                  {subjectNames[activeSubTab] || current.title}
                 </h3>
               </div>
               <div className="w-12 h-1 bg-[#0F2C59]" />

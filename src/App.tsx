@@ -64,6 +64,8 @@ export default function App() {
   }, []);
 
   const [introSubTab, setIntroSubTab] = useState("philosophy");
+  const [subjectSubTab, setSubjectSubTab] = useState("spine");
+  const [locationBranch, setLocationBranch] = useState("nowon");
 
   // 메뉴 변경 시 화면 최상단으로 부드럽게 스크롤 (모바일 및 전 기기 적용)
   useEffect(() => {
@@ -132,6 +134,8 @@ export default function App() {
               <MainVisual 
                 setActiveTab={setActiveTab} 
                 setIntroSubTab={setIntroSubTab} 
+                setSubjectSubTab={setSubjectSubTab}
+                setLocationBranch={setLocationBranch}
               />
 
               {/* 2. 삼잘 수면/식이/배변 3대 철학 스토리 (사용자 시안 정밀 매치) */}
@@ -167,6 +171,8 @@ export default function App() {
             >
               <SubSubject 
                 setActiveTab={setActiveTab} 
+                activeSubTab={subjectSubTab}
+                setActiveSubTab={setSubjectSubTab}
               />
             </motion.div>
           ) : activeTab === "location" ? (
@@ -177,7 +183,10 @@ export default function App() {
               exit={{ opacity: 0, y: -15 }}
               transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
             >
-              <SubLocation />
+              <SubLocation 
+                activeBranch={locationBranch}
+                setActiveBranch={setLocationBranch}
+              />
             </motion.div>
           ) : activeTab === "notice" ? (
             <motion.div

@@ -5,8 +5,24 @@ import {
 } from "lucide-react";
 import { Notice, DiagnoseItem } from "../types";
 import { db, storage } from "../firebase";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, query, orderBy } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+
+const NAVIGATION_OPTIONS = [
+  { label: "진료철학", linkTab: "intro", subTab: "philosophy" },
+  { label: "고유치료법", linkTab: "intro", subTab: "treatments" },
+  { label: "Research&ClinicalPartners", linkTab: "intro", subTab: "doctors" },
+  { label: "대외활동", linkTab: "intro", subTab: "activities" },
+  { label: "통증/관절/척추질환", linkTab: "subject", subTab: "spine" },
+  { label: "내과질환", linkTab: "subject", subTab: "internal" },
+  { label: "알레르기", linkTab: "subject", subTab: "allergy" },
+  { label: "통합암관리", linkTab: "subject", subTab: "cancer" },
+  { label: "항노화/해독", linkTab: "subject", subTab: "detox" },
+  { label: "안면마비", linkTab: "subject", subTab: "paralysis" },
+  { label: "노원점(전준영대표원장)", linkTab: "location", subTab: "nowon" },
+  { label: "구리점(제정진 대표원장)", linkTab: "location", subTab: "guri" },
+  { label: "공지사항", linkTab: "notice", subTab: "" },
+];
 
 export default function SubAdmin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -16,8 +32,43 @@ export default function SubAdmin() {
 
   const labelSaveTimeoutRef = useRef<Record<string, any>>({});
 
-  const [activeSubTab, setActiveSubTab] = useState<"notices" | "photos" | "diagnoses" | "profiles" | "subject_images" | "intro_images">("notices");
-  
+  const [activeSubTab, setActiveSubTab] = useState<"notices" | "photos" | "diagnoses" | "profiles" | "subject_images" | "main_visuals">("notices");
+
+  // Main Visuals Slide Type
+  interface MainVisualSlide {
+    id: string;
+    image: string;
+    title: string;
+    subtitle?: string;
+    desc?: string;
+    linkTab?: string;
+    subTab?: string;
+    positionClass?: string;
+    order: number;
+    createdAt?: string;
+    objectPosition?: string;
+  }
+
+  // Main Visuals State
+  const [mainVisuals, setMainVisuals] = useState<MainVisualSlide[]>([]);
+  const [mainVisualUploading, setMainVisualUploading] = useState(false);
+  const [mainVisualError, setMainVisualError] = useState("");
+  const [isAddVisualOpen, setIsAddVisualOpen] = useState(false);
+  const [editingVisual, setEditingVisual] = useState<MainVisualSlide | null>(null);
+
+  // Form states for Add/Edit Main Visual
+  const [visualTitle, setVisualTitle] = useState("");
+  const [visualSubtitle, setVisualSubtitle] = useState("");
+  const [visualDesc, setVisualDesc] = useState("");
+  const [visualLinkTab, setVisualLinkTab] = useState("intro");
+  const [visualSubTab, setVisualSubTab] = useState("philosophy");
+  const [visualPositionClass, setVisualPositionClass] = useState("object-center");
+  const [visualOrder, setVisualOrder] = useState<number>(0);
+  const [visualFile, setVisualFile] = useState<File | null>(null);
+  const [visualPreview, setVisualPreview] = useState("");
+  const [visualPositionX, setVisualPositionX] = useState<number>(50);
+  const [visualPositionY, setVisualPositionY] = useState<number>(50);
+
   // Intro Images State
   const [introImagesMap, setIntroImagesMap] = useState<Record<string, string>>({
     philosophy_main: "/images/clinic_interior_modern_1780495390125.png",
@@ -45,6 +96,7 @@ export default function SubAdmin() {
     role: string;
     desc: string;
     tag: string;
+    researchTitle?: string;
   }
 
   const DEFAULT_PROFILES: Record<string, ProfileInfo> = {
@@ -53,28 +105,32 @@ export default function SubAdmin() {
       name: "김유정 박사",
       role: "삼잘에센셜 처방 천연물 제형 과학 자문위원",
       desc: "약재 성분 추출 최적화와 제형 연구를 통해 처방의 생체 이용률을 높이는 천연물 과학 전문가",
-      tag: "의뢰 파트너"
+      tag: "의뢰 파트너",
+      researchTitle: ""
     },
     jeon_junyoung: {
       id: "jeon_junyoung",
       name: "전준영 원장",
-      role: "한방재활의학과 전문의",
-      desc: "경희대병원 출신의 한방재활의학 전문의로서 세심한 진료와 재활의학적 지식을 바탕으로 자생력 향상에 기여합니다.",
-      tag: "노원점 대표"
+      role: "경희대 한의대 학사\n경희대 한의대 임상한의학 석사\n경희대 한방병원 인턴/레지던트 과정 수료\n경희대 한방병원 척추관절센터/뇌졸중센터 재직\n한방재활의학과 전문의\n한방비만학회 연구자문위원",
+      researchTitle: "삼잘에센셜 처방 수석 연구원(Head Developer of formulation)",
+      desc: "De-tox캡슐 수원단 연구개발\nAnti-inflammatory formula 프라이머 오일 연구개발\n관절염 솔루션: Feather-step 연구개발\n알레르기 솔루션: Allergy-control 연구개발\n불면증 솔루션: Goyo 연구개발\n항노화 포뮬러: Cell-renewal 연구개발",
+      tag: "경희대학교 한방병원 한방재활의학과 임상 연구 발표\n대한한방재활의학회 학술지 연구 논문 게재"
     },
     je_jengjin: {
       id: "je_jengjin",
       name: "제정진 원장",
-      role: "구리본점 대표원장",
-      desc: "패럴림픽 국가대표팀 주치의 역임. 30년 임상 경력을 기반으로 대관절 심부안정화 침법을 정밀 시술합니다.",
-      tag: "구리점 대표"
+      role: "경희대 한의대 학사\n경희대 한의대 임상한의학 박사\n한체대 대학원 체육학 박사\n경희대학교 한방병원 한방내과 레지던트 이수\n2016년 리우, 2018년 평창, 2020년 도쿄, 2024년 파리 올림픽에서 패럴림픽 국가대표팀 주치의 역할을 수행했습니다\n삼잘에센셜 처방 개발 고문\n전)상지대 한의대 교수\n전)대한스포츠한의학회 회장",
+      researchTitle: "삼잘에센셜 처방 임상 연구 고문(Clinical Research Advisor)",
+      desc: "척추관절 질환 심부안정화 침구법 연구\n스포츠 운동 상해 한의치료 임상 가이드라인 수립",
+      tag: "스포츠 한의학 임상 저변 확대에 관한 종설 연구\n한방 침치료의 신경생리학적 메커니즘 연구"
     },
     je_hyunyoung: {
       id: "je_hyunyoung",
       name: "제현영 원장",
-      role: "구리본점 진료원장",
-      desc: "침구의학 전문 자문과 꼼꼼한 약침 치료를 시행하여 환자의 빠른 쾌유와 신체 밸런스를 되찾아 드립니다.",
-      tag: "구리점 원장"
+      role: "상지대 한의대 졸업\n체육학 석사(한체대 대학원)\n동수원 한방병원 인턴 과정 수료(일반수련 수료의)\n동수원 한방병원 응급진료실 재직\n전)한의약진흥원 연구원",
+      researchTitle: "삼잘에센셜 처방 공동 연구원",
+      desc: "여성질환 및 부인과 전문 진료\n체중 조절 및 다이어트 한의 솔루션\n척추/관절/통증 디스크 정밀 치료\n교통사고 및 스포츠 외상 재활\nForeigner Clinic 외국인 특화 진료",
+      tag: "코어근육에 적용한 동작침법이 남자 대학 골프선수의 관절 가동성, 근 파워 및 드라이버 수행력에 미치는 급성효과, 2024"
     }
   };
 
@@ -84,6 +140,7 @@ export default function SubAdmin() {
   const [editProfileRole, setEditProfileRole] = useState<string>("");
   const [editProfileDesc, setEditProfileDesc] = useState<string>("");
   const [editProfileTag, setEditProfileTag] = useState<string>("");
+  const [editProfileResearchTitle, setEditProfileResearchTitle] = useState<string>("");
 
   // Subject Images State
   const defaultSubjectImages: Record<string, string[]> = {
@@ -160,6 +217,67 @@ export default function SubAdmin() {
   };
   const [subjectImagesMap, setSubjectImagesMap] = useState<Record<string, string[]>>(defaultSubjectImages);
   const [subjectLabelsMap, setSubjectLabelsMap] = useState<Record<string, string[]>>(defaultSubjectLabels);
+
+  const defaultSubjectNames: Record<string, string> = {
+    spine: "통증 / 관절 / 척추질환",
+    internal: "내과질환",
+    allergy: "알레르기 및 면역질환",
+    cancer: "한양방 통합 암관리 클리닉",
+    detox: "항노화 및 생체 디톡스 해독",
+    paralysis: "안면신경 마비재생 센터"
+  };
+  const [subjectNamesMap, setSubjectNamesMap] = useState<Record<string, string>>(defaultSubjectNames);
+  const nameSaveTimeoutRef = useRef<Record<string, any>>({});
+
+  const defaultSubjectDescs: Record<string, string> = {
+    spine: "통증을 없애는 것도 중요하지만 해당 증상이 일어나게 된 과정을 함께 치료합니다.\n만성적 문제를 유발하는 자세이상을 교정하고 관절의 심부근육 활성도를 높입니다.",
+    internal: "소화기계, 호흡기계, 순환기계, 내분비계, 비뇨생식기계, 자율신경계의 문제를 각자 분리해서 보지 않고 통합적인 관점에서 살피고 치료합니다.",
+    allergy: "결과로서의 증상 뿐 아니라 그 이면의 선행과정들을 함께 다스리는 것을 목표로 합니다.",
+    cancer: "표준 항암치료와 병행 가능한 과학적이고 무해한 천연화합물 요법을 지향합니다. 재발 및 전이 가능성을 낮추고 항암부작용을 줄입니다. 암종과 병기에 따라 다른 치료법을 적용합니다.",
+    detox: "노화는 피할 수 없는 자연 현상이 아니라, 세포내 유전자 손상과 대사기능의 저하로 인해 발생하는 ‘관리가능한 생물학적 프로세스’입니다.\n본원만의 독자적인 추출 공정으로 완성한 ‘셀리뉴얼’을 통해, 노화의 근본 원인인 세포시계를 늦추고 젊음의 대사 스위치를 다시 켭니다.",
+    paralysis: "구안와사 증상을 일으키는 안면신경마비의 급성기/회복기에 따라 다른 치료방법을 적용하여 안면신경을 손상으로부터 보호하고 후유증을 최소화합니다."
+  };
+  const [subjectDescsMap, setSubjectDescsMap] = useState<Record<string, string>>(defaultSubjectDescs);
+  const descSaveTimeoutRef = useRef<Record<string, any>>({});
+
+  const defaultSubjectBenefits: Record<string, string[]> = {
+    spine: [
+      "통증: 두통, 통풍, 자세이상(거북목, 굽은 등), 섬유근육통, 만성 통증",
+      "관절: 어깨(오십견, 회전근개 파열), 팔꿈치(테니스엘보, 관절염), 고관절, 무릎(퇴행성 관절염), 발목, 손가락/발가락",
+      "척추: 목/허리 디스크, 척추 협착증, 전방전위증, 자세이상"
+    ],
+    internal: [
+      "소화기계: 만성소화불량, 저체중, 변비, 과민성장증후군, 역류성 위식도질환",
+      "호흡기계: 만성기침, 알레르기(비염, 천식)",
+      "순환기계: 가슴 두근거림, 고혈압, 울혈성 심부전, 부종",
+      "내분비계: 과체중, 당뇨, 고지혈증, 만성피로",
+      "자율신경계: 자율신경 실조증, 미주신경성 실신, 이석증, 공황장애"
+    ],
+    allergy: [
+      "알레르기성 비염",
+      "알레르기성 결막염",
+      "만성 두드러기",
+      "아토피/천식"
+    ],
+    cancer: [
+      "재발 및 전이 관리",
+      "항암 부작용 관리",
+      "암종과 병기 맞춤 치료",
+      "암환자 식이요법"
+    ],
+    detox: [
+      "생물학적 세포 시계의 복원 (텔로머레이즈 활성화)",
+      "장수 유전자 및 대사 스위치 ON (SIRT1 & AMPK 타겟팅)",
+      "세포 산화 및 녹슮 방지 (초강력 항산화 네트워크)"
+    ],
+    paralysis: [
+      "급성기(2주): 항염증, 항바이러스, 신경보호, 근위축 방지",
+      "회복기(이후): 신경재생인자 발현, 축삭 재생 촉진, 신경-근육 지배 정상화"
+    ]
+  };
+  const [subjectBenefitsMap, setSubjectBenefitsMap] = useState<Record<string, string[]>>(defaultSubjectBenefits);
+  const benefitsSaveTimeoutRef = useRef<Record<string, any>>({});
+
   const [subjectUploadingId, setSubjectUploadingId] = useState<string | null>(null);
   const [subjectErrorMap, setSubjectErrorMap] = useState<Record<string, string>>({});
 
@@ -186,6 +304,9 @@ export default function SubAdmin() {
       const snap = await getDocs(collection(db, "subject_images"));
       const updatedMap = { ...defaultSubjectImages };
       const updatedLabelsMap = { ...defaultSubjectLabels };
+      const updatedNamesMap = { ...defaultSubjectNames };
+      const updatedDescsMap = { ...defaultSubjectDescs };
+      const updatedBenefitsMap = { ...defaultSubjectBenefits };
       snap.forEach(d => {
         const data = d.data();
         if (d.id !== "config" && d.id) {
@@ -194,6 +315,15 @@ export default function SubAdmin() {
           }
           if (data.labels && Array.isArray(data.labels)) {
             updatedLabelsMap[d.id] = data.labels;
+          }
+          if (data.name && typeof data.name === "string") {
+            updatedNamesMap[d.id] = data.name;
+          }
+          if (data.desc && typeof data.desc === "string") {
+            updatedDescsMap[d.id] = data.desc;
+          }
+          if (data.benefits && Array.isArray(data.benefits)) {
+            updatedBenefitsMap[d.id] = data.benefits;
           }
         }
       });
@@ -228,6 +358,9 @@ export default function SubAdmin() {
 
       setSubjectImagesMap(updatedMap);
       setSubjectLabelsMap(updatedLabelsMap);
+      setSubjectNamesMap(updatedNamesMap);
+      setSubjectDescsMap(updatedDescsMap);
+      setSubjectBenefitsMap(updatedBenefitsMap);
     } catch (err) {
       console.warn("진료과목 이미지 및 명칭 로드 실패:", err);
     }
@@ -256,6 +389,80 @@ export default function SubAdmin() {
         console.log(`Autosaved image label for ${subjectId} at index ${dbIdx}`);
       } catch (err) {
         console.error("Autosave failed:", err);
+      }
+    }, 450);
+  };
+
+  const handleSubjectNameChange = (subjectId: string, newName: string) => {
+    setSubjectNamesMap(prev => ({
+      ...prev,
+      [subjectId]: newName
+    }));
+
+    if (nameSaveTimeoutRef.current[subjectId]) {
+      clearTimeout(nameSaveTimeoutRef.current[subjectId]);
+    }
+
+    nameSaveTimeoutRef.current[subjectId] = setTimeout(async () => {
+      try {
+        await setDoc(doc(db, "subject_images", subjectId), {
+          id: subjectId,
+          name: newName,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+        console.log(`Autosaved subject name for ${subjectId}`);
+      } catch (err) {
+        console.error("Autosave of subject name failed:", err);
+      }
+    }, 450);
+  };
+
+  const handleSubjectDescChange = (subjectId: string, newDesc: string) => {
+    setSubjectDescsMap(prev => ({
+      ...prev,
+      [subjectId]: newDesc
+    }));
+
+    if (descSaveTimeoutRef.current[subjectId]) {
+      clearTimeout(descSaveTimeoutRef.current[subjectId]);
+    }
+
+    descSaveTimeoutRef.current[subjectId] = setTimeout(async () => {
+      try {
+        await setDoc(doc(db, "subject_images", subjectId), {
+          id: subjectId,
+          desc: newDesc,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+        console.log(`Autosaved subject desc for ${subjectId}`);
+      } catch (err) {
+        console.error("Autosave of subject desc failed:", err);
+      }
+    }, 450);
+  };
+
+  const handleSubjectBenefitsChange = (subjectId: string, newlineText: string) => {
+    const newBenefits = newlineText.split("\n").map(line => line.trim()).filter(line => line.length > 0);
+
+    setSubjectBenefitsMap(prev => ({
+      ...prev,
+      [subjectId]: newBenefits
+    }));
+
+    if (benefitsSaveTimeoutRef.current[subjectId]) {
+      clearTimeout(benefitsSaveTimeoutRef.current[subjectId]);
+    }
+
+    benefitsSaveTimeoutRef.current[subjectId] = setTimeout(async () => {
+      try {
+        await setDoc(doc(db, "subject_images", subjectId), {
+          id: subjectId,
+          benefits: newBenefits,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+        console.log(`Autosaved subject benefits for ${subjectId}`);
+      } catch (err) {
+        console.error("Autosave of subject benefits failed:", err);
       }
     }, 450);
   };
@@ -441,6 +648,286 @@ export default function SubAdmin() {
     }
   };
 
+  const loadMainVisuals = async () => {
+    try {
+      const snap = await getDocs(query(collection(db, "main_visuals"), orderBy("order", "asc")));
+      const list: MainVisualSlide[] = [];
+      snap.forEach(d => {
+        const val = d.data() as any;
+        list.push({
+          id: d.id,
+          image: val.image || "",
+          title: val.title || "",
+          subtitle: val.subtitle || "",
+          desc: val.desc || "",
+          linkTab: val.linkTab || "intro",
+          subTab: val.subTab || "",
+          positionClass: val.positionClass || "object-center",
+          order: val.order ?? 0,
+          createdAt: val.createdAt || "",
+          objectPosition: val.objectPosition || ""
+        });
+      });
+      setMainVisuals(list);
+    } catch (err) {
+      console.error("loadMainVisuals error:", err);
+    }
+  };
+
+  const handleNewVisualUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) {
+      showToast("이미지 크기는 최대 15MB까지 가능합니다.", "error");
+      return;
+    }
+    setVisualFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setVisualPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const resetVisualForm = () => {
+    setVisualTitle("");
+    setVisualSubtitle("");
+    setVisualDesc("");
+    setVisualLinkTab("intro");
+    setVisualSubTab("philosophy");
+    setVisualPositionClass("object-center");
+    setVisualOrder(mainVisuals.length);
+    setVisualFile(null);
+    setVisualPreview("");
+    setVisualPositionX(50);
+    setVisualPositionY(50);
+    setMainVisualError("");
+  };
+
+  const handleStartEditVisual = (visual: MainVisualSlide) => {
+    setEditingVisual(visual);
+    setVisualTitle(visual.title);
+    setVisualSubtitle(visual.subtitle || "");
+    setVisualDesc(visual.desc || "");
+    setVisualLinkTab(visual.linkTab || "intro");
+    setVisualSubTab(visual.subTab || "");
+    setVisualPositionClass(visual.positionClass || "object-center");
+    setVisualOrder(visual.order);
+    setVisualFile(null);
+    setVisualPreview(visual.image);
+    
+    if (visual.objectPosition) {
+      const parts = visual.objectPosition.split(" ");
+      if (parts.length === 2) {
+        setVisualPositionX(parseInt(parts[0]) || 50);
+        setVisualPositionY(parseInt(parts[1]) || 50);
+      } else {
+        setVisualPositionX(50);
+        setVisualPositionY(50);
+      }
+    } else {
+      if (visual.positionClass === "object-top") {
+        setVisualPositionX(50);
+        setVisualPositionY(0);
+      } else if (visual.positionClass === "object-bottom") {
+        setVisualPositionX(50);
+        setVisualPositionY(100);
+      } else if (visual.positionClass === "object-left") {
+        setVisualPositionX(0);
+        setVisualPositionY(50);
+      } else if (visual.positionClass === "object-right") {
+        setVisualPositionX(100);
+        setVisualPositionY(50);
+      } else {
+        setVisualPositionX(50);
+        setVisualPositionY(50);
+      }
+    }
+    setMainVisualError("");
+  };
+
+  const handleAddVisualSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!visualFile && !visualPreview) {
+      setMainVisualError("이미지 파일을 업로드해 주세요.");
+      return;
+    }
+    setMainVisualUploading(true);
+    setMainVisualError("");
+
+    try {
+      let imageUrl = visualPreview;
+      let storagePath = "inline-base64";
+
+      if (visualFile) {
+        const compressedBase64 = await compressImageFile(visualFile, 1200, 1200, 0.80);
+        try {
+          const uploadResp = await fetchWithTimeout("/api/photos/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fileData: compressedBase64,
+              fileName: `main_visual_${Date.now()}_${visualFile.name}`
+            }),
+            timeout: 10000
+          });
+
+          if (uploadResp.ok) {
+            const uploadResult = await uploadResp.json();
+            imageUrl = uploadResult.imageUrl;
+            storagePath = uploadResult.storagePath;
+          } else {
+            throw new Error("Server upload failure");
+          }
+        } catch (srvErr) {
+          console.warn("서버 업로드 실패, 브라우저 직접 전송 폴백:", srvErr);
+          try {
+            const fileName = `main_visual_${Date.now()}_${visualFile.name}`;
+            const storageRef = ref(storage, `site-images/main-visuals/${fileName}`);
+            const compressedBlob = base64ToBlob(compressedBase64);
+            imageUrl = await clientUploadWithTimeout(storageRef, compressedBlob, 6000);
+            storagePath = `site-images/main-visuals/${fileName}`;
+          } catch (clientErr) {
+            console.warn("직접 업로드 불가, Base64 직접 기입 폴백:", clientErr);
+            imageUrl = compressedBase64;
+          }
+        }
+      }
+
+      const newId = doc(collection(db, "main_visuals")).id;
+      const nextOrder = mainVisuals.length > 0 ? Math.max(...mainVisuals.map(v => v.order)) + 1 : 0;
+      await setDoc(doc(db, "main_visuals", newId), {
+        image: imageUrl,
+        title: visualTitle,
+        subtitle: "",
+        desc: visualDesc,
+        linkTab: visualLinkTab,
+        subTab: visualSubTab,
+        positionClass: "object-center",
+        objectPosition: `${visualPositionX}% ${visualPositionY}%`,
+        order: nextOrder,
+        createdAt: new Date().toISOString()
+      });
+
+      showToast("메인 비주얼 슬라이드가 성공적으로 추가되었습니다!", "success");
+      setIsAddVisualOpen(false);
+      resetVisualForm();
+      await loadMainVisuals();
+    } catch (err: any) {
+      console.error(err);
+      setMainVisualError(`저장 중 에러 발생: ${err.message || err}`);
+    } finally {
+      setMainVisualUploading(false);
+    }
+  };
+
+  const handleEditVisualSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!editingVisual) return;
+    setMainVisualUploading(true);
+    setMainVisualError("");
+
+    try {
+      let imageUrl = editingVisual.image;
+      let storagePath = "";
+
+      if (visualFile) {
+        const compressedBase64 = await compressImageFile(visualFile, 1200, 1200, 0.80);
+        try {
+          const uploadResp = await fetchWithTimeout("/api/photos/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fileData: compressedBase64,
+              fileName: `main_visual_edit_${Date.now()}_${visualFile.name}`
+            }),
+            timeout: 10000
+          });
+
+          if (uploadResp.ok) {
+            const uploadResult = await uploadResp.json();
+            imageUrl = uploadResult.imageUrl;
+            storagePath = uploadResult.storagePath;
+          } else {
+            throw new Error("Server upload failure");
+          }
+        } catch (srvErr) {
+          console.warn("서버 업로드 실패, 브라우저 직접 전송 폴백:", srvErr);
+          try {
+            const fileName = `main_visual_edit_${Date.now()}_${visualFile.name}`;
+            const storageRef = ref(storage, `site-images/main-visuals/${fileName}`);
+            const compressedBlob = base64ToBlob(compressedBase64);
+            imageUrl = await clientUploadWithTimeout(storageRef, compressedBlob, 6000);
+            storagePath = `site-images/main-visuals/${fileName}`;
+          } catch (clientErr) {
+            console.warn("직접 업로드 불가, Base64 직접 기입 폴백:", clientErr);
+            imageUrl = compressedBase64;
+          }
+        }
+      } else if (visualPreview) {
+        imageUrl = visualPreview;
+      }
+
+      await setDoc(doc(db, "main_visuals", editingVisual.id), {
+        image: imageUrl,
+        title: visualTitle,
+        subtitle: "",
+        desc: visualDesc,
+        linkTab: visualLinkTab,
+        subTab: visualSubTab,
+        positionClass: "object-center",
+        objectPosition: `${visualPositionX}% ${visualPositionY}%`,
+        order: Number(visualOrder)
+      }, { merge: true });
+
+      showToast("메인 비주얼 슬라이드가 성공적으로 수정되었습니다!", "success");
+      setEditingVisual(null);
+      resetVisualForm();
+      await loadMainVisuals();
+    } catch (err: any) {
+      console.error(err);
+      setMainVisualError(`수정 중 에러 발생: ${err.message || err}`);
+    } finally {
+      setMainVisualUploading(false);
+    }
+  };
+
+  const handleDeleteVisual = async (id: string) => {
+    if (!window.confirm("정말로 이 메인 비주얼 슬라이드를 삭제하시겠습니까?")) return;
+    try {
+      await deleteDoc(doc(db, "main_visuals", id));
+      showToast("슬라이드가 성공적으로 삭제되었습니다.", "success");
+      await loadMainVisuals();
+    } catch (err: any) {
+      console.error(err);
+      showToast(`삭제 에러: ${err.message || err}`, "error");
+    }
+  };
+
+  const handleMoveVisualOrder = async (idx: number, direction: "up" | "down") => {
+    if (direction === "up" && idx === 0) return;
+    if (direction === "down" && idx === mainVisuals.length - 1) return;
+
+    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+    const current = mainVisuals[idx];
+    const target = mainVisuals[targetIdx];
+
+    // Swap orders
+    const tempOrder = current.order;
+    current.order = target.order;
+    target.order = tempOrder;
+
+    try {
+      await setDoc(doc(db, "main_visuals", current.id), { order: current.order }, { merge: true });
+      await setDoc(doc(db, "main_visuals", target.id), { order: target.order }, { merge: true });
+      showToast("노출 순서가 변경되었습니다.", "success");
+      await loadMainVisuals();
+    } catch (err: any) {
+      console.error(err);
+      showToast("순서 변경 저장 실패", "error");
+    }
+  };
+
   const loadProfiles = async () => {
     try {
       const snap = await getDocs(collection(db, "profile_images"));
@@ -465,7 +952,8 @@ export default function SubAdmin() {
             name: val.name || DEFAULT_PROFILES[d.id]?.name || "",
             role: val.role || DEFAULT_PROFILES[d.id]?.role || "",
             desc: descVal || DEFAULT_PROFILES[d.id]?.desc || "",
-            tag: val.tag || DEFAULT_PROFILES[d.id]?.tag || ""
+            tag: val.tag || DEFAULT_PROFILES[d.id]?.tag || "",
+            researchTitle: val.researchTitle || DEFAULT_PROFILES[d.id]?.researchTitle || ""
           };
         }
       });
@@ -483,6 +971,7 @@ export default function SubAdmin() {
     setEditProfileRole(info.role);
     setEditProfileDesc(info.desc);
     setEditProfileTag(info.tag);
+    setEditProfileResearchTitle(info.researchTitle || "");
   };
 
   const handleSaveProfileInfo = async (profileId: string) => {
@@ -497,6 +986,7 @@ export default function SubAdmin() {
         role: editProfileRole,
         desc: editProfileDesc,
         tag: editProfileTag,
+        researchTitle: editProfileResearchTitle,
         updatedAt: new Date().toISOString()
       }, { merge: true });
 
@@ -508,7 +998,8 @@ export default function SubAdmin() {
           name: editProfileName,
           role: editProfileRole,
           desc: editProfileDesc,
-          tag: editProfileTag
+          tag: editProfileTag,
+          researchTitle: editProfileResearchTitle
         }
       }));
 
@@ -903,6 +1394,8 @@ export default function SubAdmin() {
       await loadSubjectImages();
       // Intro/Treatment Images
       await loadIntroImages();
+      // Homepage Main Visual Slides
+      await loadMainVisuals();
     } catch (e) {
       console.error(e);
     } finally {
@@ -1818,8 +2311,8 @@ export default function SubAdmin() {
           <button onClick={() => setActiveSubTab("subject_images")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all shrink-0 cursor-pointer flex items-center gap-2 ${activeSubTab === "subject_images" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
             <LayoutGrid className="w-4 h-4" /><span>진료과목 이미지 관리 (5×4)</span>
           </button>
-          <button onClick={() => setActiveSubTab("intro_images")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all shrink-0 cursor-pointer flex items-center gap-2 ${activeSubTab === "intro_images" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
-            <Sparkles className="w-4 h-4" /><span>치료소개 이미지 관리 (4)</span>
+          <button onClick={() => setActiveSubTab("main_visuals")} className={`px-5 py-3 font-sans text-xs sm:text-sm font-extrabold tracking-tight border-b-2 transition-all shrink-0 cursor-pointer flex items-center gap-2 ${activeSubTab === "main_visuals" ? "border-[#0F2C59] text-[#0F2C59]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
+            <Sparkles className="w-4 h-4" /><span>메인사진 관리 ({mainVisuals.length})</span>
           </button>
         </div>
 
@@ -2414,12 +2907,12 @@ export default function SubAdmin() {
                         <input type="text" value={editProfileName} onChange={(e) => setEditProfileName(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
                       </div>
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">담당업무 *</label>
-                        <input type="text" value={editProfileRole} onChange={(e) => setEditProfileRole(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
-                      </div>
-                      <div className="space-y-1">
                         <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">상세내용 *</label>
                         <textarea value={editProfileDesc} onChange={(e) => setEditProfileDesc(e.target.value)} rows={3} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white resize-none leading-relaxed font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">연구대표명칭 *</label>
+                        <input type="text" value={editProfileRole} onChange={(e) => setEditProfileRole(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
                       </div>
                       <div className="space-y-1">
                         <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">태그 *</label>
@@ -2477,20 +2970,24 @@ export default function SubAdmin() {
                   {editingProfileId === "jeon_junyoung" ? (
                     <div className="space-y-4 mt-1 bg-white p-4 rounded-xl border border-slate-200/65 font-sans shadow-xs">
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans font-sans">의료진 이름 *</label>
-                        <input type="text" value={editProfileName} onChange={(e) => setEditProfileName(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                        <label id="edit-profile-name-label-jeon_junyoung" className="block text-[10px] font-bold text-[#0F2C59] font-sans">의료진 이름 *</label>
+                        <input id="edit-profile-name-jeon_junyoung" type="text" value={editProfileName} onChange={(e) => setEditProfileName(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
                       </div>
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans font-sans">담당업무 *</label>
-                        <input type="text" value={editProfileRole} onChange={(e) => setEditProfileRole(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                        <label id="edit-profile-role-label-jeon_junyoung" className="block text-[10px] font-bold text-[#0F2C59] font-sans">이력 및 학력 *</label>
+                        <textarea id="edit-profile-role-jeon_junyoung" rows={6} value={editProfileRole} onChange={(e) => setEditProfileRole(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans leading-relaxed resize-none" required />
                       </div>
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans font-sans">상세내용 *</label>
-                        <textarea value={editProfileDesc} onChange={(e) => setEditProfileDesc(e.target.value)} rows={3} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white resize-none leading-relaxed font-sans" required />
+                        <label id="edit-profile-research-title-label-jeon_junyoung" className="block text-[10px] font-bold text-[#0F2C59] font-sans">연구대표명칭 *</label>
+                        <input id="edit-profile-research-title-jeon_junyoung" type="text" value={editProfileResearchTitle} onChange={(e) => setEditProfileResearchTitle(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
                       </div>
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans font-sans">태그 *</label>
-                        <input type="text" value={editProfileTag} onChange={(e) => setEditProfileTag(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                        <label id="edit-profile-desc-label-jeon_junyoung" className="block text-[10px] font-bold text-[#0F2C59] font-sans">연구개발 *</label>
+                        <textarea id="edit-profile-desc-jeon_junyoung" value={editProfileDesc} onChange={(e) => setEditProfileDesc(e.target.value)} rows={6} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white resize-none leading-relaxed font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label id="edit-profile-tag-label-jeon_junyoung" className="block text-[10px] font-bold text-[#0F2C59] font-sans">논문작성란 *</label>
+                        <textarea id="edit-profile-tag-jeon_junyoung" rows={4} value={editProfileTag} onChange={(e) => setEditProfileTag(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans leading-relaxed resize-none" required />
                       </div>
                       <div className="flex gap-2 pt-2 border-t border-slate-100 font-sans">
                         <button type="button" onClick={() => handleSaveProfileInfo("jeon_junyoung")} className="flex-1 py-1.5 bg-[#0F2C59] text-white hover:bg-slate-800 rounded-lg text-xs font-bold whitespace-nowrap cursor-pointer transition-all">저장 완료</button>
@@ -2501,9 +2998,52 @@ export default function SubAdmin() {
                     <>
                       <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-1.5 font-sans">
                         {profilesInfoMap.jeon_junyoung?.name || DEFAULT_PROFILES.jeon_junyoung.name}
-                        <span className="text-xs text-slate-400 font-medium font-sans">{profilesInfoMap.jeon_junyoung?.role || DEFAULT_PROFILES.jeon_junyoung.role}</span>
+                        <span className="text-xs text-slate-400 font-medium font-sans">노원점 대표원장</span>
                       </h4>
-                      <p className="text-xs text-slate-500 mt-2.5 mb-4 leading-relaxed font-sans">{profilesInfoMap.jeon_junyoung?.desc || DEFAULT_PROFILES.jeon_junyoung.desc}</p>
+                      
+                      {/* 이력 표시 영역 */}
+                      <div className="mt-2.5 bg-slate-100 border border-slate-200/50 p-3 rounded-xl font-sans text-[11px] text-slate-600 space-y-1">
+                        <div className="font-extrabold text-[#0F2C59] mb-1.5 flex items-center gap-1.5">
+                          <span className="w-1 h-3 bg-[#0F2C59] rounded-xs" />
+                          <span>주요 이력 및 학력</span>
+                        </div>
+                        <div className="whitespace-pre-line leading-relaxed font-sans">
+                          {profilesInfoMap.jeon_junyoung?.role || DEFAULT_PROFILES.jeon_junyoung.role}
+                        </div>
+                      </div>
+
+                      {/* 연구대표명칭 표시 영역 */}
+                      <div className="mt-2 bg-slate-100 border border-slate-200/50 p-3 rounded-xl font-sans text-[11px] text-slate-600 space-y-1">
+                        <div className="font-extrabold text-[#0F2C59] mb-1.5 flex items-center gap-1.5">
+                          <span className="w-1 h-3 bg-[#0F2C59] rounded-xs" />
+                          <span>연구대표명칭</span>
+                        </div>
+                        <div className="whitespace-pre-line leading-relaxed font-sans font-bold text-[#0F2C59]">
+                          {profilesInfoMap.jeon_junyoung?.researchTitle || DEFAULT_PROFILES.jeon_junyoung.researchTitle}
+                        </div>
+                      </div>
+
+                      {/* 연구개발 표시 영역 */}
+                      <div className="mt-2 bg-slate-100 border border-slate-200/50 p-3 rounded-xl font-sans text-[11px] text-slate-600 space-y-1">
+                        <div className="font-extrabold text-[#0F2C59] mb-1.5 flex items-center gap-1.5">
+                          <span className="w-1 h-3 bg-[#0F2C59] rounded-xs" />
+                          <span>연구개발</span>
+                        </div>
+                        <div className="whitespace-pre-line leading-relaxed font-sans">
+                          {profilesInfoMap.jeon_junyoung?.desc || DEFAULT_PROFILES.jeon_junyoung.desc}
+                        </div>
+                      </div>
+
+                      {/* 논문 및 학술활동 표시 영역 */}
+                      <div className="mt-2 bg-slate-100 border border-slate-200/50 p-3 rounded-xl font-sans text-[11px] text-slate-600 space-y-1">
+                        <div className="font-extrabold text-[#0F2C59] mb-1.5 flex items-center gap-1.5">
+                          <span className="w-1 h-3 bg-[#0F2C59] rounded-xs" />
+                          <span>논문작성란(논문 및 학술활동)</span>
+                        </div>
+                        <div className="whitespace-pre-line leading-relaxed font-sans">
+                          {profilesInfoMap.jeon_junyoung?.tag || DEFAULT_PROFILES.jeon_junyoung.tag}
+                        </div>
+                      </div>
                       
                       <div className="flex items-center gap-5 mt-4 pt-4 border-t border-slate-100">
                         <div className="w-20 h-24 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm relative group">
@@ -2544,20 +3084,24 @@ export default function SubAdmin() {
                   {editingProfileId === "je_jengjin" ? (
                     <div className="space-y-4 mt-1 bg-white p-4 rounded-xl border border-slate-200/65 font-sans shadow-xs">
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">의료진 이름 *</label>
-                        <input type="text" value={editProfileName} onChange={(e) => setEditProfileName(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                        <label id="edit-profile-name-label-je_jengjin" className="block text-[10px] font-bold text-[#0F2C59] font-sans">의료진 이름 *</label>
+                        <input id="edit-profile-name-je_jengjin" type="text" value={editProfileName} onChange={(e) => setEditProfileName(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
                       </div>
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">담당업무 *</label>
-                        <input type="text" value={editProfileRole} onChange={(e) => setEditProfileRole(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                        <label id="edit-profile-role-label-je_jengjin" className="block text-[10px] font-bold text-[#0F2C59] font-sans">이력 및 학력 *</label>
+                        <textarea id="edit-profile-role-je_jengjin" rows={6} value={editProfileRole} onChange={(e) => setEditProfileRole(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans leading-relaxed resize-none" required />
                       </div>
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">상세내용 *</label>
-                        <textarea value={editProfileDesc} onChange={(e) => setEditProfileDesc(e.target.value)} rows={3} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white resize-none leading-relaxed font-sans" required />
+                        <label id="edit-profile-research-title-label-je_jengjin" className="block text-[10px] font-bold text-[#0F2C59] font-sans">연구대표명칭 *</label>
+                        <input id="edit-profile-research-title-je_jengjin" type="text" value={editProfileResearchTitle} onChange={(e) => setEditProfileResearchTitle(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
                       </div>
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">태그 *</label>
-                        <input type="text" value={editProfileTag} onChange={(e) => setEditProfileTag(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                        <label id="edit-profile-desc-label-je_jengjin" className="block text-[10px] font-bold text-[#0F2C59] font-sans">연구개발 *</label>
+                        <textarea id="edit-profile-desc-je_jengjin" value={editProfileDesc} onChange={(e) => setEditProfileDesc(e.target.value)} rows={6} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white resize-none leading-relaxed font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label id="edit-profile-tag-label-je_jengjin" className="block text-[10px] font-bold text-[#0F2C59] font-sans">논문작성란 *</label>
+                        <textarea id="edit-profile-tag-je_jengjin" rows={4} value={editProfileTag} onChange={(e) => setEditProfileTag(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans leading-relaxed resize-none" required />
                       </div>
                       <div className="flex gap-2 pt-2 border-t border-slate-100 font-sans">
                         <button type="button" onClick={() => handleSaveProfileInfo("je_jengjin")} className="flex-1 py-1.5 bg-[#0F2C59] text-white hover:bg-slate-800 rounded-lg text-xs font-bold whitespace-nowrap cursor-pointer transition-all">저장 완료</button>
@@ -2568,9 +3112,52 @@ export default function SubAdmin() {
                     <>
                       <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-1.5 font-sans">
                         {profilesInfoMap.je_jengjin?.name || DEFAULT_PROFILES.je_jengjin.name}
-                        <span className="text-xs text-slate-400 font-medium">{profilesInfoMap.je_jengjin?.role || DEFAULT_PROFILES.je_jengjin.role}</span>
+                        <span className="text-xs text-slate-400 font-medium font-sans">구리본점 대표원장</span>
                       </h4>
-                      <p className="text-xs text-slate-500 mt-2.5 mb-4 leading-relaxed font-sans">{profilesInfoMap.je_jengjin?.desc || DEFAULT_PROFILES.je_jengjin.desc}</p>
+                      
+                      {/* 이력 표시 영역 */}
+                      <div className="mt-2.5 bg-slate-100 border border-slate-200/50 p-3 rounded-xl font-sans text-[11px] text-slate-600 space-y-1">
+                        <div className="font-extrabold text-[#0F2C59] mb-1.5 flex items-center gap-1.5">
+                          <span className="w-1 h-3 bg-[#0F2C59] rounded-xs" />
+                          <span>주요 이력 및 학력</span>
+                        </div>
+                        <div className="whitespace-pre-line leading-relaxed font-sans">
+                          {profilesInfoMap.je_jengjin?.role || DEFAULT_PROFILES.je_jengjin.role}
+                        </div>
+                      </div>
+
+                      {/* 연구대표명칭 표시 영역 */}
+                      <div className="mt-2 bg-slate-100 border border-slate-200/50 p-3 rounded-xl font-sans text-[11px] text-slate-600 space-y-1">
+                        <div className="font-extrabold text-[#0F2C59] mb-1.5 flex items-center gap-1.5">
+                          <span className="w-1 h-3 bg-[#0F2C59] rounded-xs" />
+                          <span>연구대표명칭</span>
+                        </div>
+                        <div className="whitespace-pre-line leading-relaxed font-sans font-bold text-[#0F2C59]">
+                          {profilesInfoMap.je_jengjin?.researchTitle || DEFAULT_PROFILES.je_jengjin.researchTitle}
+                        </div>
+                      </div>
+
+                      {/* 연구개발 표시 영역 */}
+                      <div className="mt-2 bg-slate-100 border border-slate-200/50 p-3 rounded-xl font-sans text-[11px] text-slate-600 space-y-1">
+                        <div className="font-extrabold text-[#0F2C59] mb-1.5 flex items-center gap-1.5">
+                          <span className="w-1 h-3 bg-[#0F2C59] rounded-xs" />
+                          <span>연구개발</span>
+                        </div>
+                        <div className="whitespace-pre-line leading-relaxed font-sans">
+                          {profilesInfoMap.je_jengjin?.desc || DEFAULT_PROFILES.je_jengjin.desc}
+                        </div>
+                      </div>
+
+                      {/* 논문 및 학술활동 표시 영역 */}
+                      <div className="mt-2 bg-slate-100 border border-slate-200/50 p-3 rounded-xl font-sans text-[11px] text-slate-600 space-y-1">
+                        <div className="font-extrabold text-[#0F2C59] mb-1.5 flex items-center gap-1.5">
+                          <span className="w-1 h-3 bg-[#0F2C59] rounded-xs" />
+                          <span>논문작성란(논문 및 학술활동)</span>
+                        </div>
+                        <div className="whitespace-pre-line leading-relaxed font-sans">
+                          {profilesInfoMap.je_jengjin?.tag || DEFAULT_PROFILES.je_jengjin.tag}
+                        </div>
+                      </div>
                       
                       <div className="flex items-center gap-5 mt-4 pt-4 border-t border-slate-100">
                         <div className="w-20 h-24 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm relative group">
@@ -2615,16 +3202,20 @@ export default function SubAdmin() {
                         <input type="text" value={editProfileName} onChange={(e) => setEditProfileName(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
                       </div>
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">담당업무 *</label>
-                        <input type="text" value={editProfileRole} onChange={(e) => setEditProfileRole(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">이력 및 학력 *</label>
+                        <textarea rows={6} value={editProfileRole} onChange={(e) => setEditProfileRole(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans leading-relaxed resize-none" required />
                       </div>
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">상세내용 *</label>
-                        <textarea value={editProfileDesc} onChange={(e) => setEditProfileDesc(e.target.value)} rows={3} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white resize-none leading-relaxed font-sans" required />
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">연구대표명칭 *</label>
+                        <input type="text" value={editProfileResearchTitle} onChange={(e) => setEditProfileResearchTitle(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
                       </div>
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">태그 *</label>
-                        <input type="text" value={editProfileTag} onChange={(e) => setEditProfileTag(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans" required />
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">연구개발 *</label>
+                        <textarea value={editProfileDesc} onChange={(e) => setEditProfileDesc(e.target.value)} rows={6} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white resize-none leading-relaxed font-sans" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-[#0F2C59] font-sans">논문작성란 *</label>
+                        <textarea rows={4} value={editProfileTag} onChange={(e) => setEditProfileTag(e.target.value)} className="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0F2C59] focus:bg-white font-sans leading-relaxed resize-none" required />
                       </div>
                       <div className="flex gap-2 pt-2 border-t border-slate-100 font-sans">
                         <button type="button" onClick={() => handleSaveProfileInfo("je_hyunyoung")} className="flex-1 py-1.5 bg-[#0F2C59] text-white hover:bg-slate-800 rounded-lg text-xs font-bold whitespace-nowrap cursor-pointer transition-all">저장 완료</button>
@@ -2635,9 +3226,52 @@ export default function SubAdmin() {
                     <>
                       <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-1.5 font-sans">
                         {profilesInfoMap.je_hyunyoung?.name || DEFAULT_PROFILES.je_hyunyoung.name}
-                        <span className="text-xs text-slate-400 font-medium font-sans">{profilesInfoMap.je_hyunyoung?.role || DEFAULT_PROFILES.je_hyunyoung.role}</span>
+                        <span className="text-xs text-slate-400 font-medium font-sans">구리본점 진료원장</span>
                       </h4>
-                      <p className="text-xs text-slate-500 mt-2.5 mb-4 leading-relaxed font-sans">{profilesInfoMap.je_hyunyoung?.desc || DEFAULT_PROFILES.je_hyunyoung.desc}</p>
+                      
+                      {/* 이력 표시 영역 */}
+                      <div className="mt-2.5 bg-slate-100 border border-slate-200/50 p-3 rounded-xl font-sans text-[11px] text-slate-600 space-y-1">
+                        <div className="font-extrabold text-[#0F2C59] mb-1.5 flex items-center gap-1.5">
+                          <span className="w-1 h-3 bg-[#0F2C59] rounded-xs" />
+                          <span>주요 이력 및 학력</span>
+                        </div>
+                        <div className="whitespace-pre-line leading-relaxed font-sans">
+                          {profilesInfoMap.je_hyunyoung?.role || DEFAULT_PROFILES.je_hyunyoung.role}
+                        </div>
+                      </div>
+
+                      {/* 연구대표명칭 표시 영역 */}
+                      <div className="mt-2 bg-slate-100 border border-slate-200/50 p-3 rounded-xl font-sans text-[11px] text-slate-600 space-y-1">
+                        <div className="font-extrabold text-[#0F2C59] mb-1.5 flex items-center gap-1.5">
+                          <span className="w-1 h-3 bg-[#0F2C59] rounded-xs" />
+                          <span>연구대표명칭</span>
+                        </div>
+                        <div className="whitespace-pre-line leading-relaxed font-sans font-bold text-[#0F2C59]">
+                          {profilesInfoMap.je_hyunyoung?.researchTitle || DEFAULT_PROFILES.je_hyunyoung.researchTitle}
+                        </div>
+                      </div>
+
+                      {/* 연구개발 표시 영역 */}
+                      <div className="mt-2 bg-slate-100 border border-slate-200/50 p-3 rounded-xl font-sans text-[11px] text-slate-600 space-y-1">
+                        <div className="font-extrabold text-[#0F2C59] mb-1.5 flex items-center gap-1.5">
+                          <span className="w-1 h-3 bg-[#0F2C59] rounded-xs" />
+                          <span>연구개발</span>
+                        </div>
+                        <div className="whitespace-pre-line leading-relaxed font-sans">
+                          {profilesInfoMap.je_hyunyoung?.desc || DEFAULT_PROFILES.je_hyunyoung.desc}
+                        </div>
+                      </div>
+
+                      {/* 논문 및 학술활동 표시 영역 */}
+                      <div className="mt-2 bg-slate-100 border border-slate-200/50 p-3 rounded-xl font-sans text-[11px] text-slate-600 space-y-1">
+                        <div className="font-extrabold text-[#0F2C59] mb-1.5 flex items-center gap-1.5">
+                          <span className="w-1 h-3 bg-[#0F2C59] rounded-xs" />
+                          <span>논문작성란(논문 및 학술활동)</span>
+                        </div>
+                        <div className="whitespace-pre-line leading-relaxed font-sans">
+                          {profilesInfoMap.je_hyunyoung?.tag || DEFAULT_PROFILES.je_hyunyoung.tag}
+                        </div>
+                      </div>
                       
                       <div className="flex items-center gap-5 mt-4 pt-4 border-t border-slate-100">
                         <div className="w-20 h-24 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-sm relative group">
@@ -2677,23 +3311,63 @@ export default function SubAdmin() {
 
             <div className="space-y-12">
               {[
-                { id: "spine", name: "통증 / 관절 / 척추질환" },
-                { id: "internal", name: "내과질환" },
-                { id: "allergy", name: "알레르기 및 면역질환" },
-                { id: "cancer", name: "한양방 통합 암관리 클리닉" },
-                { id: "detox", name: "항노화 및 생체 디톡스 해독" },
-                { id: "paralysis", name: "안면신경 마비재생 센터" }
+                { id: "spine", defaultName: "통증 / 관절 / 척추질환" },
+                { id: "internal", defaultName: "내과질환" },
+                { id: "allergy", defaultName: "알레르기 및 면역질환" },
+                { id: "cancer", defaultName: "한양방 통합 암관리 클리닉" },
+                { id: "detox", defaultName: "항노화 및 생체 디톡스 해독" },
+                { id: "paralysis", defaultName: "안면신경 마비재생 센터" }
               ].map((subject) => {
+                const subjectName = subjectNamesMap[subject.id] || subject.defaultName;
                 const baseImgList = subjectImagesMap[subject.id] || defaultSubjectImages[subject.id];
                 let imgList = (subject.id === "cancer" || subject.id === "paralysis") ? [baseImgList[0]] : baseImgList;
                 return (
                   <div key={subject.id} className="border border-slate-200/80 rounded-2xl p-5 sm:p-6 bg-slate-50/30">
                     <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
-                      <h4 className="text-base font-extrabold text-[#0F2C59] font-sans flex items-center gap-2">
+                      <h4 className="text-base font-extrabold text-[#0F2C59] font-sans flex items-center gap-2 flex-1">
                         <span className="w-2.5 h-2.5 rounded-full bg-[#0F2C59]" />
-                        {subject.name}
+                        <input
+                          type="text"
+                          value={subjectName}
+                          onChange={(e) => handleSubjectNameChange(subject.id, e.target.value)}
+                          className="text-base font-extrabold text-[#0F2C59] font-sans border-b border-dashed border-slate-300 hover:border-[#0F2C59] focus:border-[#0F2C59] focus:border-solid focus:outline-none bg-transparent py-0.5 px-1 w-full max-w-[280px] sm:max-w-[340px] transition-all rounded cursor-pointer"
+                          title="진료과목 명칭 수정"
+                        />
                       </h4>
                       <span className="text-[10px] font-mono text-slate-400">ID: {subject.id}</span>
+                    </div>
+
+                    {/* 추가 입력란: 설명 내용 및 태그(통증, 관절, 척추 등) */}
+                    <div id={`subject-meta-fields-${subject.id}`} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-slate-100/40 rounded-xl border border-slate-200/50">
+                      <div id={`subject-desc-field-wrap-${subject.id}`} className="space-y-1.5">
+                        <label className="block text-xs font-extrabold text-[#0F2C59] font-sans flex items-center gap-1">
+                          <span>• 지금 홈페이지에 들어간 설명 내용</span>
+                        </label>
+                        <textarea
+                          id={`subject-desc-textarea-${subject.id}`}
+                          rows={3}
+                          value={subjectDescsMap[subject.id] || ""}
+                          onChange={(e) => handleSubjectDescChange(subject.id, e.target.value)}
+                          className="w-full text-xs font-sans text-slate-700 bg-white border border-slate-200 focus:border-[#0F2C59] focus:ring-1 focus:ring-[#0F2C59] focus:outline-none rounded-lg p-2.5 leading-relaxed resize-y transition-all shadow-2xs"
+                          placeholder="홈페이지 진료과목 아래에 들어갈 설명 문구를 입력하세요."
+                          title="진료과목 상세설명 수정"
+                        />
+                      </div>
+
+                      <div id={`subject-benefits-field-wrap-${subject.id}`} className="space-y-1.5">
+                        <label className="block text-xs font-extrabold text-[#0F2C59] font-sans flex items-center gap-1">
+                          <span>• 아래 통증, 관절, 척추 넣는 텍스트입력 (줄바꿈 구분)</span>
+                        </label>
+                        <textarea
+                          id={`subject-benefits-textarea-${subject.id}`}
+                          rows={3}
+                          value={(subjectBenefitsMap[subject.id] || []).join("\n")}
+                          onChange={(e) => handleSubjectBenefitsChange(subject.id, e.target.value)}
+                          className="w-full text-xs font-sans text-slate-700 bg-white border border-slate-200 focus:border-[#0F2C59] focus:ring-1 focus:ring-[#0F2C59] focus:outline-none rounded-lg p-2.5 leading-relaxed resize-y transition-all shadow-2xs"
+                          placeholder="엔터(줄바꿈)로 구분하여 여러 개의 항목을 입력하세요. 예:&#13;&#10;통증: 두통, 자세이상, 만성 통증&#13;&#10;관절: 어깨, 무릎, 고관절"
+                          title="치료 항목 리스트 수정"
+                        />
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -2716,7 +3390,7 @@ export default function SubAdmin() {
                                 {subjectUploadingId === uploadKey && <span className="text-[9px] text-[#0F2C59] font-bold animate-pulse">업로드중...</span>}
                               </div>
                               <div className="aspect-square w-full rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
-                                <img src={url} alt={`${subject.name} ${idx + 1}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                <img src={url} alt={`${subjectName} ${idx + 1}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                               </div>
 
                               {/* 명칭 관리 인풋 필드 */}
@@ -2752,67 +3426,116 @@ export default function SubAdmin() {
           </div>
         )}
 
-        {/* 원내 소개 및 고유치료법 이미지 관리 탭 */}
-        {activeSubTab === "intro_images" && (
+        {/* 홈페이지 메인 비주얼 사진 관리 탭 */}
+        {activeSubTab === "main_visuals" && (
           <div className="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-sm text-left relative animate-fadeIn">
             <div className="absolute top-0 inset-x-0 h-1.5 bg-[#0F2C59] rounded-t-2xl" />
             <div className="space-y-1.5 mb-8 pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <span className="text-[10px] font-bold font-sans text-[#0F2C59] uppercase tracking-widest block">Clinic Introduction Images Manager</span>
-                <h3 className="text-xl font-sans font-extrabold text-[#0F2C59]">원내 소개 및 3대 고유 치료 소개 이미지 관리</h3>
-                <p className="text-xs font-sans text-slate-400">진료철학 및 특권 치료 안내에 즉시 노출되는 4대 이미지를 안전하게 관리 및 교체합니다.</p>
+                <span className="text-[10px] font-bold font-sans text-[#0F2C59] uppercase tracking-widest block">Main Banner Management</span>
+                <h3 className="text-xl font-sans font-extrabold text-[#0F2C59]">홈페이지 첫화면 메인 슬라이드 관리</h3>
+                <p className="text-xs font-sans text-slate-400">홈페이지 첫화면에 노출되는 롤링 비주얼 이미지와 타이포그래피 문구, 링크 등을 자유롭게 제어합니다.</p>
               </div>
+              <button 
+                onClick={() => { resetVisualForm(); setIsAddVisualOpen(true); }}
+                className="px-4 py-2 bg-[#0F2C59] hover:bg-opacity-90 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+              >
+                <Plus className="w-4 h-4" /> 신규 슬라이드 추가
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-              {[
-                { id: "philosophy_main", tag: "진료철학", name: "진료철학 메인 소개 사진", desc: "진료철학 소개 란 우측 하단 메인 이미지" },
-                { id: "suseung_hwagang", tag: "특권 치료", name: "수승화강 기류 환경 사진", desc: "고유 치료 1열 '수승화강' 전면 이미지" },
-                { id: "wisubae_annyeong", tag: "특권 치료", name: "위수배 안녕 한약 치료 사진", desc: "고유 치료 2열 '위수배 안녕' 전면 이미지" },
-                { id: "wisubae_essential", tag: "고유치료", name: "삼잘에센셜 한약재 사진", desc: "고유치료법 탭 '삼잘에센셜' 소개 이미지" },
-                { id: "daegwanjeol_donggichim", tag: "특권 치료", name: "심부 안정화 대관절 침법 침술 치료 사진", desc: "고유 치료 3열 '심부 안정화 대관절 침법' 전면 이미지" }
-              ].map((item) => {
-                const currentImg = introImagesMap[item.id];
-                return (
-                  <div key={item.id} className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-md transition-all">
+            {mainVisuals.length === 0 ? (
+              <div className="text-center py-12 border border-dashed border-slate-200 rounded-xl bg-slate-50">
+                <p className="text-sm font-bold text-slate-500 font-sans">등록된 메인 슬라이드가 없습니다.</p>
+                <p className="text-xs text-slate-400 mt-1">우측 상단의 버튼을 통해 새로운 롤링 배너를 추가해 보세요!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {mainVisuals.map((visual, idx) => (
+                  <div key={visual.id} className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-md transition-all">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold bg-[#0F2C59]/10 text-[#0F2C59] px-2 py-0.5 rounded-md font-sans">{item.tag}</span>
-                        {introUploadingId === item.id && (
-                          <span className="text-[9px] text-[#0F2C59] font-bold animate-pulse">업로드 중...</span>
-                        )}
+                        <span className="text-[10px] font-bold bg-[#0F2C59]/10 text-[#0F2C59] px-2 py-0.5 rounded-md font-sans">
+                          노출 순서: {visual.order}번 (배열 순서: {idx + 1})
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button 
+                            disabled={idx === 0}
+                            onClick={() => handleMoveVisualOrder(idx, "up")}
+                            className="p-1 text-slate-400 hover:text-[#0F2C59] hover:bg-slate-100 rounded transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="위로 이동"
+                          >
+                            <ChevronUp className="w-4 h-4" />
+                          </button>
+                          <button 
+                            disabled={idx === mainVisuals.length - 1}
+                            onClick={() => handleMoveVisualOrder(idx, "down")}
+                            className="p-1 text-slate-400 hover:text-[#0F2C59] hover:bg-slate-100 rounded transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="아래로 이동"
+                          >
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                      <h4 className="text-sm font-extrabold text-[#2F2D2B] font-sans tracking-tight">{item.name}</h4>
-                      <p className="text-[11px] text-slate-400 leading-normal">{item.desc}</p>
-                      
-                      <div className="aspect-[4/3] w-full rounded-lg overflow-hidden border border-slate-200 bg-slate-50 relative">
+
+                      <div className="aspect-[16/9] w-full rounded-lg overflow-hidden border border-slate-200 bg-slate-50 relative group">
                         <img 
-                          src={currentImg} 
-                          alt={item.name} 
-                          className={`w-full h-full object-cover ${item.id === 'wisubae_annyeong' ? 'object-[center_70%]' : item.id === 'wisubae_essential' ? 'object-[center_80%]' : ''}`} 
-                          referrerPolicy="no-referrer" 
+                          src={visual.image} 
+                          alt={visual.title} 
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
                         />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <button 
+                            onClick={() => handleStartEditVisual(visual)}
+                            className="p-2 bg-white text-slate-800 rounded-full hover:bg-[#0F2C59] hover:text-white transition-all shadow cursor-pointer"
+                            title="수정하기"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteVisual(visual.id)}
+                            className="p-2 bg-white text-red-600 rounded-full hover:bg-red-600 hover:text-white transition-all shadow cursor-pointer"
+                            title="삭제하기"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-extrabold text-[#2F2D2B] font-sans tracking-tight line-clamp-1">{visual.title}</h4>
+                        {visual.subtitle && (
+                          <p className="text-[11px] text-[#0F2C59] font-bold tracking-tight font-sans">소제목: {visual.subtitle}</p>
+                        )}
+                        {visual.desc && (
+                          <p className="text-[11px] text-slate-400 leading-normal line-clamp-2">{visual.desc}</p>
+                        )}
+                        <div className="text-[10px] text-slate-400 font-sans mt-2 pt-2 border-t border-slate-100 flex justify-between">
+                          <span>링크: {visual.linkTab === 'intro' ? '병원소개' : visual.linkTab === 'diagnose' ? '자가진단' : '공지사항'}</span>
+                          {visual.subTab && <span>서브: {visual.subTab}</span>}
+                        </div>
                       </div>
                     </div>
 
-                    <div className="mt-4 space-y-1.5">
-                      <label className="block w-full text-center py-2 bg-[#0F2C59] hover:bg-slate-800 text-white rounded-lg text-xs font-bold font-sans transition-all cursor-pointer shadow-sm">
-                        사진 변경하기
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          className="hidden" 
-                          onChange={(e) => handleIntroPhotoChange(item.id, e)} 
-                        />
-                      </label>
-                      {introErrorMap[item.id] && (
-                        <p className="text-[10px] text-red-500 font-bold leading-tight mt-1">{introErrorMap[item.id]}</p>
-                      )}
+                    <div className="mt-4 flex gap-2">
+                      <button 
+                        onClick={() => handleStartEditVisual(visual)}
+                        className="flex-1 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-sans text-xs font-bold rounded-lg cursor-pointer transition-all text-center flex items-center justify-center gap-1"
+                      >
+                        <Pencil className="w-3 h-3" /> 수정
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteVisual(visual.id)}
+                        className="flex-1 py-1.5 border border-red-100 hover:bg-red-50 text-red-600 font-sans text-xs font-bold rounded-lg cursor-pointer transition-all text-center flex items-center justify-center gap-1"
+                      >
+                        <Trash2 className="w-3 h-3" /> 삭제
+                      </button>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -3124,6 +3847,414 @@ export default function SubAdmin() {
                 삭제하기
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 신규 메인 비주얼 추가 모달 */}
+      {isAddVisualOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[9999] animate-fadeIn">
+          <div className="w-full max-w-lg bg-white border border-[#DFD5C6]/60 rounded-2xl shadow-2xl p-6 sm:p-8 relative text-left font-sans max-h-[90vh] overflow-y-auto">
+            <div className="absolute top-0 inset-x-0 h-1.5 bg-[#0F2C59] rounded-t-2xl" />
+            <div className="flex items-center justify-between mb-6">
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold text-[#0F2C59] uppercase tracking-widest block">Main Visual Creator</span>
+                <h3 className="text-lg font-extrabold text-slate-800">신규 메인 슬라이드 추가</h3>
+              </div>
+              <button onClick={() => setIsAddVisualOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-all"><X className="w-4 h-4" /></button>
+            </div>
+
+            <form onSubmit={handleAddVisualSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5">배경 이미지 파일 선택 *</label>
+                {visualPreview ? (
+                  <div className="space-y-3">
+                    <div className="relative border border-slate-200 rounded-xl overflow-hidden aspect-[16/9] bg-slate-100 flex items-center justify-center shadow-inner">
+                      <img 
+                        src={visualPreview} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover transition-all"
+                        style={{ objectPosition: `${visualPositionX}% ${visualPositionY}%` }}
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => { setVisualFile(null); setVisualPreview(""); }} 
+                        className="absolute top-2 right-2 bg-slate-900/70 hover:bg-slate-900 text-white p-1.5 rounded-full transition-all cursor-pointer shadow-md z-10" 
+                        title="사진 삭제"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* 조절 컨트롤러 */}
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3 shadow-xs">
+                      <span className="text-[11px] font-extrabold text-[#0F2C59] uppercase tracking-wider block">배경 노출 영역 조절 (Positioning)</span>
+                      
+                      {/* X Slider */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[11px] font-bold text-slate-600">
+                          <span>가로 위치 (좌 ↔ 우)</span>
+                          <span className="font-mono text-[#0F2C59]">{visualPositionX}%</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="100" 
+                          value={visualPositionX}
+                          onChange={(e) => setVisualPositionX(Number(e.target.value))}
+                          className="w-full accent-[#0F2C59] cursor-pointer h-1.5 bg-slate-200 rounded-lg appearance-none"
+                        />
+                      </div>
+
+                      {/* Y Slider */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[11px] font-bold text-slate-600">
+                          <span>세로 위치 (상 ↔ 하)</span>
+                          <span className="font-mono text-[#0F2C59]">{visualPositionY}%</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="100" 
+                          value={visualPositionY}
+                          onChange={(e) => setVisualPositionY(Number(e.target.value))}
+                          className="w-full accent-[#0F2C59] cursor-pointer h-1.5 bg-slate-200 rounded-lg appearance-none"
+                        />
+                      </div>
+
+                      {/* 4-way arrow controls for micro-adjustments */}
+                      <div className="flex flex-col items-center gap-1.5 pt-2 border-t border-slate-200/50">
+                        <div className="text-[10px] text-slate-400 font-bold">미세 조절 버튼 (클릭 시 5%씩 이동)</div>
+                        <div className="flex gap-1 justify-center">
+                          <div className="w-7 h-7" />
+                          <button
+                            type="button"
+                            onClick={() => setVisualPositionY(prev => Math.max(0, prev - 5))}
+                            className="w-7 h-7 flex items-center justify-center bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs shadow-xs cursor-pointer transition-all active:scale-90 font-bold"
+                            title="위로"
+                          >
+                            ▲
+                          </button>
+                          <div className="w-7 h-7" />
+                        </div>
+                        <div className="flex gap-1 justify-center">
+                          <button
+                            type="button"
+                            onClick={() => setVisualPositionX(prev => Math.max(0, prev - 5))}
+                            className="w-7 h-7 flex items-center justify-center bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs shadow-xs cursor-pointer transition-all active:scale-90 font-bold"
+                            title="왼쪽"
+                          >
+                            ◀
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setVisualPositionX(50); setVisualPositionY(50); }}
+                            className="w-8 h-7 flex items-center justify-center bg-[#0F2C59] text-white rounded-lg text-[10px] font-bold shadow-xs cursor-pointer transition-all active:scale-90"
+                            title="가운데 초기화"
+                          >
+                            중앙
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setVisualPositionX(prev => Math.min(100, prev + 5))}
+                            className="w-7 h-7 flex items-center justify-center bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs shadow-xs cursor-pointer transition-all active:scale-90 font-bold"
+                            title="오른쪽"
+                          >
+                            ▶
+                          </button>
+                        </div>
+                        <div className="flex gap-1 justify-center">
+                          <div className="w-7 h-7" />
+                          <button
+                            type="button"
+                            onClick={() => setVisualPositionY(prev => Math.min(100, prev + 5))}
+                            className="w-7 h-7 flex items-center justify-center bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs shadow-xs cursor-pointer transition-all active:scale-90 font-bold"
+                            title="아래로"
+                          >
+                            ▼
+                          </button>
+                          <div className="w-7 h-7" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <label className="border-2 border-dashed border-slate-200 hover:border-[#0F2C59]/40 bg-slate-50/50 hover:bg-slate-50/85 rounded-xl aspect-[16/9] mb-2 flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all p-4 text-center group">
+                    <div className="p-2.5 bg-slate-100 group-hover:bg-indigo-50 text-slate-400 group-hover:text-[#0F2C59] rounded-full transition-colors"><Upload className="w-5 h-5 pointer-events-none" /></div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-700">배너 배경 이미지 업로드 (권장: 가로형 비율)</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">최대 권장 해상도 1920x1080 (최대 15MB)</p>
+                    </div>
+                    <input type="file" accept="image/*" onChange={handleNewVisualUpload} className="hidden" />
+                  </label>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">메인 제목 (Title) *</label>
+                <input 
+                  type="text" 
+                  required 
+                  value={visualTitle} 
+                  onChange={(e) => setVisualTitle(e.target.value)} 
+                  placeholder="예: 3대째 이어온 삼잘한의원의 고유 치료법"
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">설명 문구 (Description)</label>
+                <textarea 
+                  rows={2} 
+                  value={visualDesc} 
+                  onChange={(e) => setVisualDesc(e.target.value)} 
+                  placeholder="줄바꿈을 지원합니다. (예: 뇌의 열을 내려 마음의 평온을 찾습니다.\n본연의 회복력을 일깨워 드립니다.)"
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans leading-relaxed resize-none" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">자세히 알아보기 (바로가기 메뉴) *</label>
+                <select 
+                  value={`${visualLinkTab}::${visualSubTab}`} 
+                  onChange={(e) => {
+                    const selectedVal = e.target.value;
+                    const option = NAVIGATION_OPTIONS.find(opt => `${opt.linkTab}::${opt.subTab}` === selectedVal);
+                    if (option) {
+                      setVisualLinkTab(option.linkTab);
+                      setVisualSubTab(option.subTab);
+                    }
+                  }}
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans font-bold"
+                >
+                  {NAVIGATION_OPTIONS.map((opt) => (
+                    <option key={`${opt.linkTab}::${opt.subTab}`} value={`${opt.linkTab}::${opt.subTab}`}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {mainVisualError && (
+                <div className="text-center text-xs text-red-500 font-bold py-1 bg-red-50 rounded-lg">{mainVisualError}</div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setIsAddVisualOpen(false)} className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-500 font-sans text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all text-center">취소하기</button>
+                <button type="submit" disabled={mainVisualUploading} className="flex-1 py-2.5 bg-[#0F2C59] hover:bg-opacity-90 text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md cursor-pointer text-center flex items-center justify-center gap-2">
+                  {mainVisualUploading ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>저장 중...</span>
+                    </>
+                  ) : (
+                    <span>신규 슬라이드 추가</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 메인 비주얼 수정 모달 */}
+      {editingVisual && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[9999] animate-fadeIn">
+          <div className="w-full max-w-lg bg-white border border-[#DFD5C6]/60 rounded-2xl shadow-2xl p-6 sm:p-8 relative text-left font-sans max-h-[90vh] overflow-y-auto">
+            <div className="absolute top-0 inset-x-0 h-1.5 bg-[#0F2C59] rounded-t-2xl" />
+            <div className="flex items-center justify-between mb-6">
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold text-[#0F2C59] uppercase tracking-widest block">Main Visual Editor</span>
+                <h3 className="text-lg font-extrabold text-slate-800">메인 슬라이드 정보 수정</h3>
+              </div>
+              <button onClick={() => setEditingVisual(null)} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-all"><X className="w-4 h-4" /></button>
+            </div>
+
+            <form onSubmit={handleEditVisualSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5">배경 이미지 변경</label>
+                <div className="space-y-3">
+                  <div className="relative border border-slate-200 rounded-xl overflow-hidden aspect-[16/9] bg-slate-100 flex items-center justify-center group shadow-inner">
+                    <img 
+                      src={visualPreview || editingVisual.image} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover transition-all" 
+                      style={{ objectPosition: `${visualPositionX}% ${visualPositionY}%` }}
+                    />
+                    <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-start justify-end p-2.5">
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById("edit-visual-file-input")?.click()}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0F2C59] hover:bg-slate-800 text-white font-sans font-bold text-xs rounded-lg shadow-lg cursor-pointer transition-all active:scale-95"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        <span>편집</span>
+                      </button>
+                    </div>
+                    <input
+                      id="edit-visual-file-input"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleNewVisualUpload}
+                    />
+                  </div>
+
+                  {/* 조절 컨트롤러 */}
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3 shadow-xs">
+                    <span className="text-[11px] font-extrabold text-[#0F2C59] uppercase tracking-wider block">배경 노출 영역 조절 (Positioning)</span>
+                    
+                    {/* X Slider */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px] font-bold text-slate-600">
+                        <span>가로 위치 (좌 ↔ 우)</span>
+                        <span className="font-mono text-[#0F2C59]">{visualPositionX}%</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="100" 
+                        value={visualPositionX}
+                        onChange={(e) => setVisualPositionX(Number(e.target.value))}
+                        className="w-full accent-[#0F2C59] cursor-pointer h-1.5 bg-slate-200 rounded-lg appearance-none"
+                      />
+                    </div>
+
+                    {/* Y Slider */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px] font-bold text-slate-600">
+                        <span>세로 위치 (상 ↔ 하)</span>
+                        <span className="font-mono text-[#0F2C59]">{visualPositionY}%</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="100" 
+                        value={visualPositionY}
+                        onChange={(e) => setVisualPositionY(Number(e.target.value))}
+                        className="w-full accent-[#0F2C59] cursor-pointer h-1.5 bg-slate-200 rounded-lg appearance-none"
+                      />
+                    </div>
+
+                    {/* 4-way arrow controls for micro-adjustments */}
+                    <div className="flex flex-col items-center gap-1.5 pt-2 border-t border-slate-200/50">
+                      <div className="text-[10px] text-slate-400 font-bold">미세 조절 버튼 (클릭 시 5%씩 이동)</div>
+                      <div className="flex gap-1 justify-center">
+                        <div className="w-7 h-7" />
+                        <button
+                          type="button"
+                          onClick={() => setVisualPositionY(prev => Math.max(0, prev - 5))}
+                          className="w-7 h-7 flex items-center justify-center bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs shadow-xs cursor-pointer transition-all active:scale-90 font-bold"
+                          title="위로"
+                        >
+                          ▲
+                        </button>
+                        <div className="w-7 h-7" />
+                      </div>
+                      <div className="flex gap-1 justify-center">
+                        <button
+                          type="button"
+                          onClick={() => setVisualPositionX(prev => Math.max(0, prev - 5))}
+                          className="w-7 h-7 flex items-center justify-center bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs shadow-xs cursor-pointer transition-all active:scale-90 font-bold"
+                          title="왼쪽"
+                        >
+                          ◀
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setVisualPositionX(50); setVisualPositionY(50); }}
+                          className="w-8 h-7 flex items-center justify-center bg-[#0F2C59] text-white rounded-lg text-[10px] font-bold shadow-xs cursor-pointer transition-all active:scale-90"
+                          title="가운데 초기화"
+                        >
+                          중앙
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setVisualPositionX(prev => Math.min(100, prev + 5))}
+                          className="w-7 h-7 flex items-center justify-center bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs shadow-xs cursor-pointer transition-all active:scale-90 font-bold"
+                          title="오른쪽"
+                        >
+                          ▶
+                        </button>
+                      </div>
+                      <div className="flex gap-1 justify-center">
+                        <div className="w-7 h-7" />
+                        <button
+                          type="button"
+                          onClick={() => setVisualPositionY(prev => Math.min(100, prev + 5))}
+                          className="w-7 h-7 flex items-center justify-center bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs shadow-xs cursor-pointer transition-all active:scale-90 font-bold"
+                          title="아래로"
+                        >
+                          ▼
+                        </button>
+                        <div className="w-7 h-7" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">메인 제목 (Title) *</label>
+                <input 
+                  type="text" 
+                  required 
+                  value={visualTitle} 
+                  onChange={(e) => setVisualTitle(e.target.value)} 
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">설명 문구 (Description)</label>
+                <textarea 
+                  rows={2} 
+                  value={visualDesc} 
+                  onChange={(e) => setVisualDesc(e.target.value)} 
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans leading-relaxed resize-none" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">자세히 알아보기 (바로가기 메뉴) *</label>
+                <select 
+                  value={`${visualLinkTab}::${visualSubTab}`} 
+                  onChange={(e) => {
+                    const selectedVal = e.target.value;
+                    const option = NAVIGATION_OPTIONS.find(opt => `${opt.linkTab}::${opt.subTab}` === selectedVal);
+                    if (option) {
+                      setVisualLinkTab(option.linkTab);
+                      setVisualSubTab(option.subTab);
+                    }
+                  }}
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2C59]/25 focus:border-[#0F2C59] transition-all text-[#2A2826] font-sans font-bold"
+                >
+                  {NAVIGATION_OPTIONS.map((opt) => (
+                    <option key={`${opt.linkTab}::${opt.subTab}`} value={`${opt.linkTab}::${opt.subTab}`}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {mainVisualError && (
+                <div className="text-center text-xs text-red-500 font-bold py-1 bg-red-50 rounded-lg">{mainVisualError}</div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setEditingVisual(null)} className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-500 font-sans text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all text-center">취소하기</button>
+                <button type="submit" disabled={mainVisualUploading} className="flex-1 py-2.5 bg-[#0F2C59] hover:bg-opacity-90 text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md cursor-pointer text-center flex items-center justify-center gap-2">
+                  {mainVisualUploading ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>저장 중...</span>
+                    </>
+                  ) : (
+                    <span>변경사항 저장</span>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
